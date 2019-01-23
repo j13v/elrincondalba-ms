@@ -49,12 +49,33 @@ func initArticlesData(art *[]types.ArticleMock) {
 	*art = append(*art, article1, article2, article3)
 }
 
+func setupResponse(w *http.ResponseWriter, req *http.Request) {
+	(*w).Header().Set("Access-Control-Allow-Origin", "*")
+	(*w).Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
+	(*w).Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
+}
+
+type BodyQueryMessage struct {
+	Query string `json:"query"`
+}
+
 func main() {
 	// Primary data initialization
 	initArticlesData(&types.ArticlesMock)
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		result := executeQuery(r.URL.Query().Get("query"), schemas.Article)
+		setupResponse(&w, r)
+		if (*r).Method == "OPTIONS" {
+			return
+		}
+		decoder := json.NewDecoder(r.Body)
+		var t BodyQueryMessage
+		err := decoder.Decode(&t)
+		if err != nil {
+			panic(err)
+		}
+
+		result := executeQuery(t.Query, schemas.Article)
 		json.NewEncoder(w).Encode(result)
 	})
 
