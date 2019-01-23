@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/graphql-go/graphql"
-	"github.com/jal88/elrincodalba-ms/types"
+	"github.com/jal88/elrincondalba-ms/types"
 )
 
 var Article = graphql.NewObject(graphql.ObjectConfig{

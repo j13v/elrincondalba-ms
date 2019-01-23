@@ -1,7 +1,7 @@
 package queries
 
 import (
-	"github.com/jal88/elrincodalba-ms/types"
+	"github.com/jal88/elrincondalba-ms/types"
 
 	"github.com/graphql-go/graphql"
 )

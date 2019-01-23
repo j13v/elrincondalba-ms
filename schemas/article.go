@@ -2,8 +2,8 @@ package schemas
 
 import (
 	"github.com/graphql-go/graphql"
-	"github.com/jal88/elrincodalba-ms/mutations"
-	"github.com/jal88/elrincodalba-ms/queries"
+	"github.com/jal88/elrincondalba-ms/mutations"
+	"github.com/jal88/elrincondalba-ms/queries"
 )
 
 var Article, _ = graphql.NewSchema(

@@ -6,8 +6,8 @@ import (
 	"net/http"
 
 	"github.com/graphql-go/graphql"
-	"github.com/jal88/elrincodalba-ms/schemas"
-	"github.com/jal88/elrincodalba-ms/types"
+	"github.com/jal88/elrincondalba-ms/schemas"
+	"github.com/jal88/elrincondalba-ms/types"
 )
 
 func executeQuery(query string, schema graphql.Schema) *graphql.Result {
