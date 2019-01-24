@@ -49,6 +49,34 @@ func initArticlesData(art *[]types.ArticleMock) {
 	*art = append(*art, article1, article2, article3)
 }
 
+func initOrdersData(ord *[]types.OrderMock) {
+	order1 := types.OrderMock{
+		ID:       1,
+		Article:  "MiniFalda",
+		User:     "Jorge",
+		Size:     "L",
+		CreateAt: "20/01/2019",
+		UpdateAt: "24/01/2019",
+		State:    "PENDIENTE"}
+	order2 := types.OrderMock{
+		ID:       2,
+		Article:  "MiniFalda",
+		User:     "Ruben",
+		Size:     "L",
+		CreateAt: "02/01/2019",
+		UpdateAt: "24/01/2019",
+		State:    "PENDIENTE"}
+	order3 := types.OrderMock{
+		ID:       3,
+		Article:  "MiniFalda",
+		User:     "Marta",
+		Size:     "S",
+		CreateAt: "11/01/2019",
+		UpdateAt: "24/01/2019",
+		State:    "PENDIENTE"}
+	*ord = append(*ord, order1, order2, order3)
+}
+
 func setupResponse(w *http.ResponseWriter, req *http.Request) {
 	(*w).Header().Set("Access-Control-Allow-Origin", "*")
 	(*w).Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
@@ -62,6 +90,7 @@ type BodyQueryMessage struct {
 func main() {
 	// Primary data initialization
 	initArticlesData(&types.ArticlesMock)
+	initOrdersData(&types.OrdersMock)
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		setupResponse(&w, r)
