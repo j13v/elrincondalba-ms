@@ -9,7 +9,7 @@ import (
 )
 
 var Order = graphql.NewObject(graphql.ObjectConfig{
-	Name: "Mutation",
+	Name: "MutationOrder",
 	Fields: graphql.Fields{
 		/* Create new order item
 		http://localhost:8080/order?query=mutation+_{create(name:"Inca Kola",info:"Inca Kola is a soft drink that was created in Peru in 1935 by British immigrant Joseph Robinson Lindley using lemon verbena (wiki)",price:1.99){id,name,info,price}}
@@ -28,25 +28,25 @@ var Order = graphql.NewObject(graphql.ObjectConfig{
 					Type: graphql.String,
 				},
 				"createAt": &graphql.ArgumentConfig{
-					Type: graphql.String,
+					Type: graphql.Int,
 				},
 				"updateAt": &graphql.ArgumentConfig{
-					Type: graphql.String,
+					Type: graphql.Int,
 				},
 				"state": &graphql.ArgumentConfig{
-					Type: graphql.String,
+					Type: graphql.Int,
 				},
 			},
 			Resolve: func(params graphql.ResolveParams) (interface{}, error) {
 				rand.Seed(time.Now().UnixNano())
 				order := types.OrderMock{
-					ID:       int64(rand.Intn(100000)), // generate random ID
+					ID:       string(rand.Intn(100000)), // generate random ID
 					Article:  params.Args["article"].(string),
 					User:     params.Args["description"].(string),
 					Size:     params.Args["size"].(string),
-					CreateAt: params.Args["createAt"].(string),
-					UpdateAt: params.Args["updateAt"].(string),
-					State:    params.Args["state"].(string),
+					CreateAt: params.Args["createAt"].(int32),
+					UpdateAt: params.Args["updateAt"].(int32),
+					State:    params.Args["state"].(int8),
 				}
 				types.OrdersMock = append(types.OrdersMock, order)
 				return order, nil
@@ -61,7 +61,7 @@ var Order = graphql.NewObject(graphql.ObjectConfig{
 			Description: "Update order by id",
 			Args: graphql.FieldConfigArgument{
 				"id": &graphql.ArgumentConfig{
-					Type: graphql.NewNonNull(graphql.Int),
+					Type: graphql.NewNonNull(graphql.String),
 				},
 				"article": &graphql.ArgumentConfig{
 					Type: graphql.String,
@@ -83,16 +83,16 @@ var Order = graphql.NewObject(graphql.ObjectConfig{
 				},
 			},
 			Resolve: func(params graphql.ResolveParams) (interface{}, error) {
-				id, _ := params.Args["id"].(int)
+				id, _ := params.Args["id"].(string)
 				article, articleOK := params.Args["article"].(string)
 				user, userOK := params.Args["user"].(string)
 				size, sizeOK := params.Args["size"].(string)
-				createAt, createAtOK := params.Args["createAt"].(string)
-				updateAt, updateAtOK := params.Args["updateAt"].(string)
-				state, stateOK := params.Args["state"].(string)
+				createAt, createAtOK := params.Args["createAt"].(int32)
+				updateAt, updateAtOK := params.Args["updateAt"].(int32)
+				state, stateOK := params.Args["state"].(int8)
 				order := types.OrderMock{}
 				for i, ord := range types.OrdersMock {
-					if int64(id) == ord.ID {
+					if string(id) == ord.ID {
 						if articleOK {
 							types.OrdersMock[i].Article = article
 						}
@@ -131,10 +131,10 @@ var Order = graphql.NewObject(graphql.ObjectConfig{
 				},
 			},
 			Resolve: func(params graphql.ResolveParams) (interface{}, error) {
-				id, _ := params.Args["id"].(int)
+				id, _ := params.Args["id"].(string)
 				order := types.OrderMock{}
 				for i, ord := range types.OrdersMock {
-					if int64(id) == ord.ID {
+					if string(id) == ord.ID {
 						order = types.OrdersMock[i]
 						// Remove from product list
 						types.OrdersMock = append(types.OrdersMock[:i], types.OrdersMock[i+1:]...)

@@ -5,11 +5,11 @@ import (
 )
 
 type ArticleMock struct {
-	ID          int64   `json:"id"`
+	ID          string  `json:"id"`
 	Name        string  `json:"name"`
 	Description string  `json:"description"`
 	Price       float64 `json:"price"`
-	Images      string  `json:"images"`
+	Images      []string  `json:"images"`
 	Category    string  `json:"category"`
 	Rating      int8    `json:"rating"`
 }
@@ -36,7 +36,7 @@ var Article = graphql.NewObject(
 				Type: graphql.Float,
 			},
 			"images": &graphql.Field{
-				Type: graphql.String,
+				Type: graphql.NewList(graphql.String),
 			},
 			"category": &graphql.Field{
 				Type: graphql.String,
