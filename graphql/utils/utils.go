@@ -193,7 +193,7 @@ var pageInfoType = graphql.NewObject(graphql.ObjectConfig{
 func ConnectionDefinitions(config ConnectionConfig) *graphql.Object {
 
 	edgeType := graphql.NewObject(graphql.ObjectConfig{
-		Name:        config.Name + "_edge",
+		Name:        config.Name + "Edge",
 		Description: "An edge in a connection",
 		Fields: graphql.Fields{
 			"node": &graphql.Field{
@@ -211,7 +211,7 @@ func ConnectionDefinitions(config ConnectionConfig) *graphql.Object {
 	}
 
 	connectionType := graphql.NewObject(graphql.ObjectConfig{
-		Name:        config.Name + "_connection",
+		Name:        config.Name + "Connection",
 		Description: "A connection to a list of items.",
 
 		Fields: graphql.Fields{
