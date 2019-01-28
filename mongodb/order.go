@@ -42,7 +42,7 @@ func (model *ModelOrder) Create(order *defs.Order) (interface{}, error) {
 }
 
 func (model *ModelOrder) FindOne(args map[string]interface{}) (interface{}, error) {
-	order := defs.Article{}
+	order := defs.Order{}
 	cursor, err := FindOne(model.collection, context.Background(), args)
 	if err != nil {
 		return nil, err
@@ -61,9 +61,9 @@ func (model *ModelOrder) FindSlice(args map[string]interface{}) ([]interface{}, 
 		log.Fatal(err)
 		return nil, meta, err
 	}
-	orders := []defs.Article{}
+	orders := []defs.Order{}
 	for _, v := range data {
-		order := defs.Article{}
+		order := defs.Order{}
 		bson.Unmarshal(v, &order)
 		orders = append(orders, order)
 	}

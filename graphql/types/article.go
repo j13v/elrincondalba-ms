@@ -15,9 +15,9 @@ var FieldArticle = graphql.Field{
 	Description: "Article",
 	Resolve: decs.ContextModelConsumer(func(params graphql.ResolveParams, model mongodb.Model) (interface{}, error) {
 		if id, ok := utils.GetValueByJSONTag(params.Source, "article"); ok {
-			if article, err := model.Article.FindOne(map[string]interface{}{"id": id}); err != nil {
-				return article, err
-			}
+			article, err := model.Article.FindOne(map[string]interface{}{"id": id})
+			return article, err
+
 		}
 		return nil, nil
 	}),

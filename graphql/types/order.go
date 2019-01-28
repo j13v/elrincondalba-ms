@@ -16,9 +16,7 @@ var TypeOrder = graphql.NewObject(
 		Fields: graphql.Fields{
 			"id":      &FieldID,
 			"article": &FieldArticle,
-			"user": &graphql.Field{
-				Type: graphql.String,
-			},
+			"user":    &FieldUser,
 			"size": &graphql.Field{
 				Type: graphql.String,
 			},
