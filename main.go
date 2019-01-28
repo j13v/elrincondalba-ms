@@ -1,19 +1,18 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
-	"time"
-	"context"
 	"net/http"
+	"time"
 
 	"github.com/graphql-go/graphql"
-	"github.com/jal88/elrincondalba-ms/schemas"
-	"github.com/jal88/elrincondalba-ms/models"
+	decs "github.com/jal88/elrincondalba-ms/graphql/decorators"
+	"github.com/jal88/elrincondalba-ms/graphql/schema"
+	"github.com/jal88/elrincondalba-ms/mongodb"
 	"github.com/mongodb/mongo-go-driver/mongo"
 )
-
-
 
 func executeQuery(
 	schema graphql.Schema,
@@ -21,80 +20,15 @@ func executeQuery(
 	variables map[string]interface{},
 	ctx context.Context) *graphql.Result {
 	result := graphql.Do(graphql.Params{
-		Schema:        schema,
-		RequestString: query,
+		Schema:         schema,
+		RequestString:  query,
 		VariableValues: variables,
-		Context: ctx,
+		Context:        ctx,
 	})
 	if len(result.Errors) > 0 {
 		fmt.Printf("errors: %v", result.Errors)
 	}
 	return result
-}
-
-func initArticlesData(db *mongo.Database) {
-	article1 := models.TypeArticle{
-		Name:        "MiniFalda",
-		Description: "Chicha morada is a beverage originated in the Andean regions of Perú but is actually consumed at a national level (wiki)",
-		Price:       7.99,
-		Images:      []string{
-			"607f1f77bcf86cd799439011",
-			"607f1f77bcf86cd799439012"},
-		Category:    "Faldas",
-		Rating:      2}
-	article2 := models.TypeArticle{
-		Name:        "Sandalia",
-		Description: "Chicha morada is a beverage originated in the Andean regions of Perú but is actually consumed at a national level (wiki)",
-		Price:       17.99,
-		Images:      []string{
-			"617f1f77bcf86cd799439011",
-			"617f1f77bcf86cd799439012"},
-		Category:    "Zapatos",
-		Rating:      4}
-	article3 := models.TypeArticle{
-		Name:        "Camiseta de tirante",
-		Description: "Chicha morada is a beverage originated in the Andean regions of Perú but is actually consumed at a national level (wiki)",
-		Price:       33.99,
-		Images:      []string{
-			"637f1f77bcf86cd799439011",
-			"637f1f77bcf86cd799439012",
-			"637f1f77bcf86cd799439013"},
-		Category:    "Camisetas",
-		Rating:      3}
-
-	model := models.GetModelArticle(db)
-	model.CreateArticle(article1)
-	model.CreateArticle(article2)
-	model.CreateArticle(article3)
-}
-
-func initOrdersData(db *mongo.Database) {
-	order1 := models.TypeOrder{
-		Article:  "5c4b58c67cbc327aa78383fd",
-		User:     "707f1f77bcf86cd799439011",
-		Size:     "L",
-		CreateAt: 1548427228,
-		UpdateAt: 1548427228,
-		State:    1}
-	order2 := models.TypeOrder{
-		Article:  "5c4b58c67cbc327aa78383fd",
-		User:     "707f1f77bcf86cd799439012",
-		Size:     "XL",
-		CreateAt: 1548427221,
-		UpdateAt: 1548427221,
-		State:    2}
-	order3 := models.TypeOrder{
-		Article:  "5c4b58c67cbc327aa78383fd",
-		User:     "707f1f77bcf86cd799439013",
-		Size:     "S",
-		CreateAt: 1548422228,
-		UpdateAt: 1548427228,
-		State:    3}
-
-		model := models.GetModelOrder(db)
-		model.CreateOrder(order1)
-		model.CreateOrder(order2)
-		model.CreateOrder(order3)
 }
 
 func setupResponse(w *http.ResponseWriter, req *http.Request) {
@@ -104,7 +38,7 @@ func setupResponse(w *http.ResponseWriter, req *http.Request) {
 }
 
 type BodyQueryMessage struct {
-	Query string `json:"query"`
+	Query     string                 `json:"query"`
 	Variables map[string]interface{} `json:"variables"`
 }
 
@@ -112,13 +46,11 @@ func main() {
 	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
 	client, err := mongo.Connect(ctx, "mongodb://localhost:27017")
 	if err != nil {
-		fmt.Print(err);
+		fmt.Print(err)
 	}
 	db := client.Database("elrincondalba")
 	// Primary data initialization
-	initArticlesData(db)
-	initOrdersData(db)
-
+	mongodb.InitData(db)
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		setupResponse(&w, r)
@@ -131,12 +63,24 @@ func main() {
 		if err != nil {
 			panic(err)
 		}
-		dbModel := models.CreateDbModel(db)
+		model := mongodb.CreateModel(db)
+
+		// u := struct{
+		// 	GetName()
+		// 	GetScopes: func() []string {
+		// 		return []string{"admin"}
+		// 	},
+		// }
+
+		ctx := context.Background()
+		ctx = decs.ContextModelApply(model)(ctx)
+		// ctx = decs.DecoratorContextUserApply(u)(ctx)
+
 		result := executeQuery(
-			schemas.Article,
+			schema.Schema,
 			t.Query,
 			t.Variables,
-			context.WithValue(context.Background(), "dbModel", dbModel))
+			ctx)
 		json.NewEncoder(w).Encode(result)
 
 	})
@@ -144,3 +88,7 @@ func main() {
 	fmt.Println("Server is running on port 8080")
 	http.ListenAndServe(":8080", nil)
 }
+
+// ctx := context.Background()
+// ctx = context.WithValue(ctx, "model", models))
+// context.WithValue(ctx, "user", users))
