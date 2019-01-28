@@ -28,7 +28,7 @@ TypeArticle
 */
 var TypeArticle = graphql.NewObject(
 	graphql.ObjectConfig{
-		Name: "article",
+		Name: "Article",
 		Fields: graphql.Fields{
 			"id": &FieldID,
 			"name": &graphql.Field{
@@ -54,7 +54,7 @@ var TypeArticle = graphql.NewObject(
 )
 
 var TypeArticleConnection = utils.ConnectionDefinitions(utils.ConnectionConfig{
-	Name:     "article",
+	Name:     "Article",
 	NodeType: TypeArticle,
 })
 

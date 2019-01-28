@@ -2,8 +2,8 @@ package types
 
 import (
 	"github.com/graphql-go/graphql"
-	"github.com/graphql-go/relay"
 	"github.com/jal88/elrincondalba-ms/graphql/enums"
+	"github.com/jal88/elrincondalba-ms/graphql/utils"
 )
 
 /*
@@ -38,10 +38,10 @@ var TypeOrder = graphql.NewObject(
 /*
 TypeOrderConnection
 */
-var TypeOrderConnection = relay.ConnectionDefinitions(relay.ConnectionConfig{
+var TypeOrderConnection = utils.ConnectionDefinitions(utils.ConnectionConfig{
 	Name:     "Order",
 	NodeType: TypeOrder,
-}).ConnectionType
+})
 
 // var OrderEdge = graphql.NewObject(
 // 	graphql.ObjectConfig{
