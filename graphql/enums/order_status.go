@@ -18,5 +18,9 @@ var EnumOrderStatus = graphql.NewEnum(graphql.EnumConfig{
 			Value:       3,
 			Description: "Admin sends article and user receives it.",
 		},
+		"CANCELLED": &graphql.EnumValueConfig{
+			Value:       3,
+			Description: "Admin/User cancel the order flow.",
+		},
 	},
 })
