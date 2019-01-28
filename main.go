@@ -50,7 +50,7 @@ func main() {
 	}
 	db := client.Database("elrincondalba")
 	// Primary data initialization
-	mongodb.InitData(db)
+	// mongodb.InitData(db)
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		setupResponse(&w, r)

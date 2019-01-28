@@ -2,7 +2,6 @@ package types
 
 import (
 	"github.com/graphql-go/graphql"
-	"github.com/graphql-go/relay"
 	decs "github.com/jal88/elrincondalba-ms/graphql/decorators"
 	"github.com/jal88/elrincondalba-ms/graphql/utils"
 	"github.com/jal88/elrincondalba-ms/mongodb"
@@ -16,8 +15,9 @@ var FieldArticle = graphql.Field{
 	Description: "Article",
 	Resolve: decs.ContextModelConsumer(func(params graphql.ResolveParams, model mongodb.Model) (interface{}, error) {
 		if id, ok := utils.GetValueByJSONTag(params.Source, "article"); ok {
-			article, err := model.Article.FindById(id)
-			return article, err
+			if article, err := model.Article.FindOne(map[string]interface{}{"id": id}); err != nil {
+				return article, err
+			}
 		}
 		return nil, nil
 	}),
@@ -28,7 +28,7 @@ TypeArticle
 */
 var TypeArticle = graphql.NewObject(
 	graphql.ObjectConfig{
-		Name: "Article",
+		Name: "article",
 		Fields: graphql.Fields{
 			"id": &FieldID,
 			"name": &graphql.Field{
@@ -53,10 +53,10 @@ var TypeArticle = graphql.NewObject(
 	},
 )
 
-var TypeArticleConnection = relay.ConnectionDefinitions(relay.ConnectionConfig{
-	Name:     "Article",
+var TypeArticleConnection = utils.ConnectionDefinitions(utils.ConnectionConfig{
+	Name:     "article",
 	NodeType: TypeArticle,
-}).ConnectionType
+})
 
 // var ArticleEdge = graphql.NewObject(
 // 	graphql.ObjectConfig{

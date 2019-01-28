@@ -15,10 +15,7 @@ var FieldGetOrder = &graphql.Field{
 		},
 	},
 	Resolve: decs.ContextModelConsumer(func(params graphql.ResolveParams, model mongodb.Model) (interface{}, error) {
-		if id, ok := params.Args["id"].(string); ok {
-			order, err := model.Order.FindById(id)
-			return order, err
-		}
-		return nil, nil
+		order, err := model.Order.FindOne(params.Args)
+		return order, err
 	}),
 }

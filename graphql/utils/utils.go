@@ -1,12 +1,20 @@
 package utils
 
 import (
+	"encoding/json"
 	"reflect"
 	"strings"
 
+	"github.com/graphql-go/graphql"
 	"github.com/graphql-go/relay"
 	"github.com/jal88/elrincondalba-ms/mongodb"
 )
+
+type ConnectionSliceMetadata struct {
+	Total      int `json:"total"`
+	SliceCount int `json:"sliceCount"`
+	SliceStart int `json:"sliceStart"`
+}
 
 type Edge struct {
 	Node   interface{} `json:"node"`
@@ -21,8 +29,9 @@ type PageInfo struct {
 }
 
 type Connection struct {
-	Edges    []*Edge  `json:"edges"`
-	PageInfo PageInfo `json:"pageInfo"`
+	TotalCount int64    `json:"totalCount"`
+	Edges      []*Edge  `json:"edges"`
+	PageInfo   PageInfo `json:"pageInfo"`
 }
 
 func NewConnection() *Connection {
@@ -57,15 +66,18 @@ func ternaryMin(a, b, c int) int {
 func ConnectionFromArraySlice(
 	arraySlice []interface{},
 	args relay.ConnectionArguments,
-	meta relay.ArraySliceMetaInfo,
+	meta interface{},
 ) *Connection {
+	byteData, _ := json.Marshal(meta)
+	metaSlice := ConnectionSliceMetadata{}
+	json.Unmarshal(byteData, &metaSlice)
 	conn := NewConnection()
-	sliceEnd := meta.SliceStart + len(arraySlice)
-	beforeOffset := relay.GetOffsetWithDefault(args.Before, meta.ArrayLength)
+	sliceEnd := metaSlice.SliceStart + len(arraySlice)
+	beforeOffset := relay.GetOffsetWithDefault(args.Before, metaSlice.Total)
 	afterOffset := relay.GetOffsetWithDefault(args.After, -1)
 
-	startOffset := ternaryMax(meta.SliceStart-1, afterOffset, -1) + 1
-	endOffset := ternaryMin(sliceEnd, beforeOffset, meta.ArrayLength)
+	startOffset := ternaryMax(metaSlice.SliceStart-1, afterOffset, -1) + 1
+	endOffset := ternaryMin(sliceEnd, beforeOffset, metaSlice.Total)
 
 	if args.First != -1 {
 		endOffset = min(endOffset, startOffset+args.First)
@@ -75,7 +87,7 @@ func ConnectionFromArraySlice(
 		startOffset = max(startOffset, endOffset-args.Last)
 	}
 
-	begin := max(startOffset-meta.SliceStart, 0)
+	begin := max(startOffset-metaSlice.SliceStart, 0)
 	end := len(arraySlice) - (sliceEnd - endOffset)
 
 	if begin > end {
@@ -103,7 +115,7 @@ func ConnectionFromArraySlice(
 		lowerBound = afterOffset + 1
 	}
 
-	upperBound := meta.ArrayLength
+	upperBound := metaSlice.Total
 	if len(args.Before) > 0 {
 		upperBound = beforeOffset
 	}
@@ -118,6 +130,7 @@ func ConnectionFromArraySlice(
 		hasNextPage = endOffset < upperBound
 	}
 
+	conn.TotalCount = int64(metaSlice.Total)
 	conn.Edges = edges
 	conn.PageInfo = PageInfo{
 		StartCursor:     firstEdgeCursor,
@@ -145,4 +158,80 @@ func GetValueByJSONTag(value interface{}, tagName string) (string, bool) {
 
 	}
 	return "", false
+}
+
+type ConnectionConfig struct {
+	Name             string          `json:"name"`
+	NodeType         *graphql.Object `json:"nodeType"`
+	EdgeFields       graphql.Fields  `json:"edgeFields"`
+	ConnectionFields graphql.Fields  `json:"connectionFields"`
+}
+
+var pageInfoType = graphql.NewObject(graphql.ObjectConfig{
+	Name:        "PageInfo",
+	Description: "Information about pagination in a connection.",
+	Fields: graphql.Fields{
+		"hasNextPage": &graphql.Field{
+			Type:        graphql.NewNonNull(graphql.Boolean),
+			Description: "When paginating forwards, are there more items?",
+		},
+		"hasPreviousPage": &graphql.Field{
+			Type:        graphql.NewNonNull(graphql.Boolean),
+			Description: "When paginating backwards, are there more items?",
+		},
+		"startCursor": &graphql.Field{
+			Type:        graphql.String,
+			Description: "When paginating backwards, the cursor to continue.",
+		},
+		"endCursor": &graphql.Field{
+			Type:        graphql.String,
+			Description: "When paginating forwards, the cursor to continue.",
+		},
+	},
+})
+
+func ConnectionDefinitions(config ConnectionConfig) *graphql.Object {
+
+	edgeType := graphql.NewObject(graphql.ObjectConfig{
+		Name:        config.Name + "_edge",
+		Description: "An edge in a connection",
+		Fields: graphql.Fields{
+			"node": &graphql.Field{
+				Type:        config.NodeType,
+				Description: "The item at the end of the edge",
+			},
+			"cursor": &graphql.Field{
+				Type:        graphql.NewNonNull(graphql.String),
+				Description: " cursor for use in pagination",
+			},
+		},
+	})
+	for fieldName, fieldConfig := range config.EdgeFields {
+		edgeType.AddFieldConfig(fieldName, fieldConfig)
+	}
+
+	connectionType := graphql.NewObject(graphql.ObjectConfig{
+		Name:        config.Name + "_connection",
+		Description: "A connection to a list of items.",
+
+		Fields: graphql.Fields{
+			"totalCount": &graphql.Field{
+				Type:        graphql.NewNonNull(graphql.Int),
+				Description: "Total records.",
+			},
+			"pageInfo": &graphql.Field{
+				Type:        graphql.NewNonNull(pageInfoType),
+				Description: "Information to aid in pagination.",
+			},
+			"edges": &graphql.Field{
+				Type:        graphql.NewList(edgeType),
+				Description: "Information to aid in pagination.",
+			},
+		},
+	})
+	for fieldName, fieldConfig := range config.ConnectionFields {
+		connectionType.AddFieldConfig(fieldName, fieldConfig)
+	}
+
+	return connectionType
 }

@@ -13,20 +13,16 @@ import (
 )
 
 /*
-FindSliceArguments
+FindSliceMetadata
 */
-type FindSliceArguments struct {
-	Filter      interface{}
-	FindOptions *options.FindOptions
+type FindSliceMetadata struct {
+	Total      int `json:"total"`
+	SliceCount int `json:"sliceCount"`
+	SliceStart int `json:"sliceStart"`
 }
 
-/*
-ParseConnectionArgs
-*/
-func NewFindArgs(args map[string]interface{}, count int64) *FindSliceArguments {
-	filter := bson.D{}
+func NewFindOptionsFromArgs(args map[string]interface{}, count int64) *options.FindOptions {
 	fopts := &options.FindOptions{}
-
 	if args != nil {
 		var first, last, limit, skip int64
 		if firstArg, ok := args["first"]; ok {
@@ -51,6 +47,7 @@ func NewFindArgs(args map[string]interface{}, count int64) *FindSliceArguments {
 				limit = limit - skip
 			} else if limit == 0 && count > last {
 				skip = count - last
+				limit = last
 			}
 		}
 
@@ -61,32 +58,85 @@ func NewFindArgs(args map[string]interface{}, count int64) *FindSliceArguments {
 		if limit != 0 {
 			fopts.Limit = &limit
 		}
-		// if before, ok := args["before"]; ok {
-		// oid, _ := primitive.ObjectIDFromHex(before.(string))
-		// filter["_id"] = bson.M{filter["_id"], "$gt": oid}
-		// filter.Append("_id", bsonx.Val{
-		// 	Key:   "$lt",
-		// 	Value: oid,
-		// })
-		// }
-		// if after, ok := args["after"]; ok {
-		// 	oid, _ := primitive.ObjectIDFromHex(after.(string))
-		// 	filter = append(filter, bson.M{"_id": bson.M{"$gt": oid}})
-		// }
+
+		// fmt.Printf("first(%d), last(%d), skip(%d), limit(%d), count(%d)\n", first, last, skip, limit, count)
 	}
 
-	// newone, _ := bson.Marshal(filter)
-	return &FindSliceArguments{
-		Filter:      &filter,
-		FindOptions: fopts,
-	}
+	return fopts
 }
 
-func FindSliceData(coll *mongo.Collection, ctx context.Context, args *FindSliceArguments) ([]bson.Raw, error) {
-	cursor, err := coll.Find(ctx, args.Filter, args.FindOptions)
+/*
+NewFindFilterFromArgs
+*/
+func NewFindFilterFromArgs(args map[string]interface{}) (*bson.D, error) {
+	filter := bson.D{}
+
+	if args != nil {
+		for key, value := range args {
+			switch {
+			case key == "id":
+				oid, err := primitive.ObjectIDFromHex(value.(string))
+				if err != nil {
+					return &filter, err
+				}
+				key = "_id"
+				value = oid
+			case key == "after" || key == "before":
+				oid, err := primitive.ObjectIDFromHex(value.(string))
+				if err != nil {
+					return &filter, err
+				}
+				if key == "after" {
+					value = bson.M{"$gt": oid}
+				} else {
+					value = bson.M{"$lt": oid}
+				}
+				key = "_id"
+			case key == "first":
+			case key == "last":
+				continue
+			}
+			filter = append(filter, bson.E{
+				Key:   key,
+				Value: value,
+			})
+		}
+	}
+	return &filter, nil
+}
+
+func FindById(coll *mongo.Collection, ctx context.Context, id string) (*mongo.SingleResult, error) {
+	oid, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return nil, err
+	}
+	cursor := coll.FindOne(ctx, bson.M{"_id": oid})
+	return cursor, err
+}
+
+func FindOne(coll *mongo.Collection, ctx context.Context, args map[string]interface{}) (*mongo.SingleResult, error) {
+	filter, err := NewFindFilterFromArgs(args)
+	if err != nil {
+		return nil, err
+	}
+	cursor := coll.FindOne(ctx, filter)
+	return cursor, nil
+}
+
+func FindSlice(coll *mongo.Collection, ctx context.Context, args map[string]interface{}) ([]bson.Raw, *FindSliceMetadata, error) {
+	filter, err := NewFindFilterFromArgs(args)
+	if err != nil {
+		return nil, nil, err
+	}
+	count, err := coll.Count(ctx, bson.D{})
+	if err != nil {
+		return nil, nil, err
+	}
+	fopts := NewFindOptionsFromArgs(args, count)
+	cursor, err := coll.Find(ctx, filter, fopts)
 	if err != nil {
 		log.Fatal(err)
-		return nil, err
+		return nil, nil, err
 	}
 	defer cursor.Close(ctx)
 	data := []bson.Raw{}
@@ -94,13 +144,41 @@ func FindSliceData(coll *mongo.Collection, ctx context.Context, args *FindSliceA
 		item := bson.Raw{}
 		if err = cursor.Decode(&item); err != nil {
 			log.Fatal(err)
-			return nil, err
+			return nil, nil, err
 		}
 		data = append(data, item)
 	}
-	return data, nil
+	var start int64
+	if len(data) > 0 {
+		oid := GetIdFromRawBson(data[0])
+		index, err := GetIndexById(coll, ctx, oid)
+		if err != nil {
+			return nil, nil, err
+		}
+		start = index
+	}
+	scount := *fopts.Limit
+	return data, &FindSliceMetadata{
+		Total:      int(count),
+		SliceCount: int(scount),
+		SliceStart: int(start),
+	}, nil
 }
 
+func GetIdFromRawBson(d bson.Raw) *primitive.ObjectID {
+	sid := &struct {
+		ID primitive.ObjectID `bson:"_id,omitempty"`
+	}{}
+	bson.Unmarshal(d, sid)
+	return &sid.ID
+}
+
+func GetIndexById(coll *mongo.Collection, ctx context.Context, id *primitive.ObjectID) (int64, error) {
+	index, err := coll.Count(ctx, bson.D{
+		{Key: "_id", Value: bson.D{{Key: "$lt", Value: id}}},
+	})
+	return index, err
+}
 func GetCount(coll *mongo.Collection, ctx context.Context) (int64, error) {
 	count, err := coll.Count(ctx, bson.D{})
 	return count, err

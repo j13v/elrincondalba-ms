@@ -8,25 +8,39 @@ import (
 	"github.com/jal88/elrincondalba-ms/mongodb"
 )
 
+/*
+FieldListArticles
+{
+  listArticles(last:3){
+    pageInfo {
+      endCursor
+      hasNextPage
+      hasPreviousPage
+      startCursor
+    }
+    edges {
+      cursor
+      node {
+        category
+        description
+        id
+        images
+        name
+        price
+        rating
+      }
+    }
+  }
+}
+*/
 var FieldListArticles = &graphql.Field{
 	Type:        TypeArticleConnection,
 	Description: "Get articles list",
 	Args:        relay.ConnectionArgs,
 	Resolve: decs.ContextModelConsumer(func(params graphql.ResolveParams, model mongodb.Model) (interface{}, error) {
 		connArgs := relay.NewConnectionArguments(params.Args)
-		count, err := model.Article.GetCount()
-		if err != nil {
-			return nil, err
-		}
-		findArgs := mongodb.NewFindArgs(params.Args, count)
-		articles, err := model.Article.FindSlice(findArgs)
-		if err != nil {
-			return nil, err
-		}
-		return utils.ConnectionFromArraySlice(articles, connArgs, relay.ArraySliceMetaInfo{
-			SliceStart:  0,
-			ArrayLength: 100,
-		}), err
+		articles, meta, err := model.Article.FindSlice(params.Args)
+		return utils.ConnectionFromArraySlice(articles, connArgs, meta), err
 	}),
 }
 

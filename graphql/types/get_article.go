@@ -13,12 +13,15 @@ var FieldGetArticle = &graphql.Field{
 		"id": &graphql.ArgumentConfig{
 			Type: graphql.String,
 		},
+		"after": &graphql.ArgumentConfig{
+			Type: graphql.String,
+		},
+		"before": &graphql.ArgumentConfig{
+			Type: graphql.String,
+		},
 	},
 	Resolve: decs.ContextModelConsumer(func(params graphql.ResolveParams, model mongodb.Model) (interface{}, error) {
-		if id, ok := params.Args["id"].(string); ok {
-			article, err := model.Article.FindById(id)
-			return article, err
-		}
-		return nil, nil
+		article, err := model.Article.FindOne(params.Args)
+		return article, err
 	}),
 }
