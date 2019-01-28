@@ -50,15 +50,8 @@ func NewFindOptionsFromArgs(args map[string]interface{}, count int64) *options.F
 				limit = last
 			}
 		}
-
-		if skip != 0 {
-			fopts.Skip = &skip
-		}
-
-		if limit != 0 {
-			fopts.Limit = &limit
-		}
-
+		fopts.Skip = &skip
+		fopts.Limit = &limit
 		// fmt.Printf("first(%d), last(%d), skip(%d), limit(%d), count(%d)\n", first, last, skip, limit, count)
 	}
 
@@ -92,8 +85,7 @@ func NewFindFilterFromArgs(args map[string]interface{}) (*bson.D, error) {
 					value = bson.M{"$lt": oid}
 				}
 				key = "_id"
-			case key == "first":
-			case key == "last":
+			case key == "first" || key == "last":
 				continue
 			}
 			filter = append(filter, bson.E{

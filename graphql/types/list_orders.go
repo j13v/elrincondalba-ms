@@ -14,11 +14,8 @@ var FieldListOrders = &graphql.Field{
 	Args:        relay.ConnectionArgs,
 	Resolve: decs.ContextModelConsumer(func(params graphql.ResolveParams, model mongodb.Model) (interface{}, error) {
 		connArgs := relay.NewConnectionArguments(params.Args)
-		orders, _, err := model.Order.FindSlice(params.Args)
-		return utils.ConnectionFromArraySlice(orders, connArgs, relay.ArraySliceMetaInfo{
-			SliceStart:  0,
-			ArrayLength: 100,
-		}), err
+		orders, meta, err := model.Order.FindSlice(params.Args)
+		return utils.ConnectionFromArraySlice(orders, connArgs, meta), err
 	}),
 }
 
