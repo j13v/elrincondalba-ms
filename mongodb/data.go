@@ -8,7 +8,7 @@ import (
 )
 
 func InitData(db *mongo.Database) {
-	model := CreateModel(db)
+	model := CreateRepo(db)
 
 	user1, _ := model.User.Create(
 		"50333339K",

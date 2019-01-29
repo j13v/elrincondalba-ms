@@ -20,7 +20,7 @@ var FieldGetArticle = &graphql.Field{
 			Type: graphql.String,
 		},
 	},
-	Resolve: decs.ContextModelConsumer(func(params graphql.ResolveParams, model mongodb.Model) (interface{}, error) {
+	Resolve: decs.ContextRepoConsumer(func(params graphql.ResolveParams, model mongodb.Repo) (interface{}, error) {
 		article, err := model.Article.FindOne(params.Args)
 		return article, err
 	}),

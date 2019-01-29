@@ -12,13 +12,22 @@ import (
 
 type ModelStock struct {
 	collection *mongo.Collection
+	article    *ModelArticle
 }
 
-func NewModelStock(db *mongo.Database) *ModelStock {
-	return &ModelStock{collection: db.Collection("stock")}
+func NewModelStock(db *mongo.Database, modelArticle *ModelArticle) *ModelStock {
+	return &ModelStock{
+		collection: db.Collection("stock"),
+		article:    modelArticle,
+	}
 }
 
 func (model *ModelStock) Create(article primitive.ObjectID, size string) (*defs.Stock, error) {
+	// Check if article exists then if not raise an error
+	if _, err := model.article.FindById(article); err != nil {
+		return nil, err
+	}
+	// Create struct data
 	stock, err := defs.NewStock(article, size)
 	if err != nil {
 		return nil, err
@@ -29,11 +38,13 @@ func (model *ModelStock) Create(article primitive.ObjectID, size string) (*defs.
 	if err != nil {
 		return nil, err
 	}
+	// Insert stock as bson.Document
 	res, err := model.collection.InsertOne(ctx, val)
 	if err != nil {
 		return nil, err
 	}
-	stock.ID = res.InsertedID.(primitive.ObjectID)
+	// Return insertedID and set to struct data
+	stock.SetID(res.InsertedID.(primitive.ObjectID))
 	return stock, err
 }
 

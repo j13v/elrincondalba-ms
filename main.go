@@ -70,7 +70,7 @@ func main() {
 		if err != nil {
 			panic(err)
 		}
-		model := mongodb.CreateModel(db)
+		repo := mongodb.CreateRepo(db)
 
 		// u := struct{
 		// 	GetName()
@@ -80,7 +80,7 @@ func main() {
 		// }
 
 		ctx := context.Background()
-		ctx = decs.ContextModelApply(model)(ctx)
+		ctx = decs.ContextRepoApply(repo)(ctx)
 		// ctx = decs.DecoratorContextUserApply(u)(ctx)
 
 		result := executeQuery(

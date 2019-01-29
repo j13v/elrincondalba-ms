@@ -13,7 +13,7 @@ FieldUser GraphQL field
 var FieldUser = graphql.Field{
 	Type:        TypeUser,
 	Description: "User",
-	Resolve: decs.ContextModelConsumer(func(params graphql.ResolveParams, model mongodb.Model) (interface{}, error) {
+	Resolve: decs.ContextRepoConsumer(func(params graphql.ResolveParams, model mongodb.Repo) (interface{}, error) {
 		if id, ok := utils.GetValueByJSONTag(params.Source, "user"); ok {
 			user, err := model.User.FindOne(map[string]interface{}{"id": id})
 			return user, err
