@@ -53,7 +53,11 @@ func main() {
 	// Primary data initialization
 	mongodb.InitData(db)
 
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+	http.Handle("/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Write(page)
+	}))
+
+	http.HandleFunc("/graphql", func(w http.ResponseWriter, r *http.Request) {
 		setupResponse(&w, r)
 		if (*r).Method == "OPTIONS" {
 			return
@@ -89,6 +93,122 @@ func main() {
 	fmt.Println("Server is running on port 8080")
 	http.ListenAndServe(":8080", nil)
 }
+
+//////// GRAPHiQL ////////
+var page = []byte(`
+<!DOCTYPE html>
+<html>
+    <head>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/graphiql/0.10.2/graphiql.css" />
+				<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.43.0/theme/monokai.css" />
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/fetch/1.1.0/fetch.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/react/15.5.4/react.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/react/15.5.4/react-dom.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/graphiql/0.10.2/graphiql.js"></script>
+    </head>
+    <body style="width: 100%; height: 100%; margin: 0; overflow: hidden;">
+        <div id="graphiql" style="height: 100vh;">Loading...</div>
+        <script>
+            function graphQLFetcher(graphQLParams) {
+                return fetch("/graphql", {
+                    method: "post",
+                    body: JSON.stringify(graphQLParams),
+                    credentials: "include",
+                }).then(function (response) {
+                    return response.text();
+                }).then(function (responseBody) {
+                    try {
+                        return JSON.parse(responseBody);
+                    } catch (error) {
+                        return responseBody;
+                    }
+                });
+            }
+            ReactDOM.render(
+                React.createElement(GraphiQL, {
+									fetcher: graphQLFetcher,
+									editorTheme: "monokai",
+									defaultQuery: [
+										"query {",
+										"  listArticles(last: 2) {",
+										"    totalCount",
+										"    edges {",
+										"      cursor",
+										"      node {",
+										"        ...ArticleFields",
+										"      }",
+										"    }",
+										"    pageInfo {",
+										"      ...PageInfoFields",
+										"    }",
+										"  }",
+										"  listOrders(first: 2) {",
+										"    totalCount",
+										"    pageInfo {",
+										"      ...PageInfoFields",
+										"    }",
+										"    edges {",
+										"      cursor",
+										"      node {",
+										"        stock {",
+										"          ...StockFields",
+										"        }",
+										"        user {",
+										"          ...UserFields",
+										"        }",
+										"        ...OrderFields",
+										"      }",
+										"    }",
+										"  }",
+										"}",
+										"fragment ArticleFields on Article {",
+										"  category",
+										"  description",
+										"  id",
+										"  images",
+										"  name",
+										"  price",
+										"  rating",
+										"  createdAt",
+										"  updatedAt",
+										"}",
+										"fragment StockFields on Stock {",
+										"  article {",
+										"    ...ArticleFields",
+										"  }",
+										"  createdAt",
+										"  id",
+										"  size",
+										"}",
+										"fragment OrderFields on Order {",
+										"  id",
+										"  state",
+										"  createdAt",
+										"  updatedAt",
+										"  notes",
+										"}",
+										"fragment UserFields on User {",
+										"  id",
+										"  address",
+										"  dni",
+										"  email",
+										"  name",
+										"  phone",
+										"  surname",
+										"}",
+										"fragment PageInfoFields on PageInfo {",
+										"  endCursor",
+										"  hasNextPage",
+										"  hasPreviousPage",
+										"  startCursor",
+										"}"].join("\n")
+									}),
+                document.getElementById("graphiql")
+            );
+        </script>
+    </body>
+</html>
+`)
 
 // ctx := context.Background()
 // ctx = context.WithValue(ctx, "model", models))

@@ -8,6 +8,7 @@ type Model struct {
 	Article *ModelArticle
 	Order   *ModelOrder
 	User    *ModelUser
+	Stock   *ModelStock
 }
 
 func CreateModel(db *mongo.Database) Model {
@@ -15,5 +16,6 @@ func CreateModel(db *mongo.Database) Model {
 	models.Article = NewModelArticle(db)
 	models.Order = NewModelOrder(db)
 	models.User = NewModelUser(db)
+	models.Stock = NewModelStock(db)
 	return models
 }

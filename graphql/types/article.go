@@ -49,6 +49,12 @@ var TypeArticle = graphql.NewObject(
 			"rating": &graphql.Field{
 				Type: graphql.Int,
 			},
+			"createdAt": &graphql.Field{
+				Type: graphql.Int,
+			},
+			"updatedAt": &graphql.Field{
+				Type: graphql.Int,
+			},
 		},
 	},
 )
@@ -57,17 +63,3 @@ var TypeArticleConnection = utils.ConnectionDefinitions(utils.ConnectionConfig{
 	Name:     "Article",
 	NodeType: TypeArticle,
 })
-
-// var ArticleEdge = graphql.NewObject(
-// 	graphql.ObjectConfig{
-// 		Name: "ArticleEdge",
-// 		Fields: graphql.Fields{
-// 			"cursor": &graphql.Field{
-// 				Type: graphql.String,
-// 			},
-// 			"node": &graphql.Field{
-// 				Type: Article,
-// 			},
-// 		},
-// 	},
-// )

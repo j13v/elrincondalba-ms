@@ -49,9 +49,6 @@ var TypeUser = graphql.NewObject(
 			"address": &graphql.Field{
 				Type: graphql.String,
 			},
-			"notes": &graphql.Field{
-				Type: graphql.String,
-			},
 		},
 	},
 )

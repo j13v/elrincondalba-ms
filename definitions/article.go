@@ -13,4 +13,6 @@ type Article struct {
 	Images      []string           `bson:"images" json:"images"`
 	Category    string             `bson:"category" json:"category"`
 	Rating      int8               `bson:"rating" json:"rating"`
+	CreatedAt   int32              `bson:"createdAt,omitempty" json:"createdAt"`
+	UpdatedAt   int32              `bson:"updatedAt,omitempty" json:"updatedAt"`
 }

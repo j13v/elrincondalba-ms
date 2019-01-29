@@ -58,27 +58,29 @@ func NewFindOptionsFromArgs(args map[string]interface{}, count int64) *options.F
 	return fopts
 }
 
+func GetObjectIDFromArg(arg interface{}) primitive.ObjectID {
+	switch arg.(type) {
+	case string:
+		oid, _ := primitive.ObjectIDFromHex(arg.(string))
+		return oid
+	default:
+		return arg.(primitive.ObjectID)
+	}
+}
+
 /*
 NewFindFilterFromArgs
 */
 func NewFindFilterFromArgs(args map[string]interface{}) (*bson.D, error) {
 	filter := bson.D{}
-
 	if args != nil {
 		for key, value := range args {
 			switch {
 			case key == "id":
-				oid, err := primitive.ObjectIDFromHex(value.(string))
-				if err != nil {
-					return &filter, err
-				}
 				key = "_id"
-				value = oid
+				value = GetObjectIDFromArg(value)
 			case key == "after" || key == "before":
-				oid, err := primitive.ObjectIDFromHex(value.(string))
-				if err != nil {
-					return &filter, err
-				}
+				oid := GetObjectIDFromArg(value)
 				if key == "after" {
 					value = bson.M{"$gt": oid}
 				} else {
