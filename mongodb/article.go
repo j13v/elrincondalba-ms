@@ -47,6 +47,11 @@ func (model *ModelArticle) FindOne(args map[string]interface{}) (interface{}, er
 	return article, err
 }
 
+func (model *ModelArticle) FindById(id primitive.ObjectID) (interface{}, error) {
+	article, err := model.FindOne(map[string]interface{}{"_id": id})
+	return article, err
+}
+
 func (model *ModelArticle) FindSlice(args map[string]interface{}) ([]interface{}, *FindSliceMetadata, error) {
 
 	data, meta, err := FindSlice(model.collection, context.Background(), args)
