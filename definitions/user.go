@@ -13,5 +13,4 @@ type User struct {
 	Email   string             `bson:"email" json:"email"`
 	Phone   string             `bson:"phone" json:"phone"`
 	Address string             `bson:"address" json:"address"`
-	Notes   string             `bson:"notes" json:"notes"`
 }

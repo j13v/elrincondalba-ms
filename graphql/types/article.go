@@ -49,6 +49,12 @@ var TypeArticle = graphql.NewObject(
 			"rating": &graphql.Field{
 				Type: graphql.Int,
 			},
+			"createdAt": &graphql.Field{
+				Type: graphql.Int,
+			},
+			"updatedAt": &graphql.Field{
+				Type: graphql.Int,
+			},
 		},
 	},
 )

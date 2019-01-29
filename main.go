@@ -53,11 +53,11 @@ func main() {
 	// Primary data initialization
 	mongodb.InitData(db)
 
-	http.Handle("/graphiql", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	http.Handle("/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Write(page)
 	}))
 
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+	http.HandleFunc("/graphql", func(w http.ResponseWriter, r *http.Request) {
 		setupResponse(&w, r)
 		if (*r).Method == "OPTIONS" {
 			return
@@ -110,7 +110,7 @@ var page = []byte(`
         <div id="graphiql" style="height: 100vh;">Loading...</div>
         <script>
             function graphQLFetcher(graphQLParams) {
-                return fetch("/", {
+                return fetch("/graphql", {
                     method: "post",
                     body: JSON.stringify(graphQLParams),
                     credentials: "include",
@@ -150,8 +150,8 @@ var page = []byte(`
 										"    edges {",
 										"      cursor",
 										"      node {",
-										"        article {",
-										"          ...ArticleFields",
+										"        stock {",
+										"          ...StockFields",
 										"        }",
 										"        user {",
 										"          ...UserFields",
@@ -169,13 +169,23 @@ var page = []byte(`
 										"  name",
 										"  price",
 										"  rating",
+										"  createdAt",
+										"  updatedAt",
+										"}",
+										"fragment StockFields on Stock {",
+										"  article {",
+										"    ...ArticleFields",
+										"  }",
+										"  createdAt",
+										"  id",
+										"  size",
 										"}",
 										"fragment OrderFields on Order {",
 										"  id",
-										"  size",
-										"  createAt",
-										"  updateAt",
 										"  state",
+										"  createdAt",
+										"  updatedAt",
+										"  notes",
 										"}",
 										"fragment UserFields on User {",
 										"  id",
@@ -183,7 +193,6 @@ var page = []byte(`
 										"  dni",
 										"  email",
 										"  name",
-										"  notes",
 										"  phone",
 										"  surname",
 										"}",

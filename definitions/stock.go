@@ -1,24 +1,34 @@
 package definitions
 
-import "errors"
+import (
+	"errors"
+	"strings"
+	"time"
+
+	"github.com/mongodb/mongo-go-driver/bson/primitive"
+)
 
 /*
 Stock definition
 */
 type Stock struct {
-	Size     string `bson:"size" json:"size"`
-	Count    int    `bson:"count" json:"count"`
-	CreateAt int32  `bson:"createAt" json:"createAt"`
+	ID        primitive.ObjectID `bson:"_id,omitempty" json:"id,omitempty"`
+	Article   primitive.ObjectID `bson:"article,omitempty" json:"article"`
+	Size      string             `bson:"size" json:"size"`
+	CreatedAt int32              `bson:"createdAt" json:"createdAt"`
 }
 
-// TODO Improve error definition
-func NewStock(size string, count int) (*Stock, error) {
-	stock := &Stock{}
+func NewStock(article primitive.ObjectID, size string) (*Stock, error) {
 	if size == "" {
-		return nil, errors.New("Empty size")
+		return nil, errors.New("Empty size in stock creation")
 	}
-	if count == 0 {
-		return nil, errors.New("Count must be greater or lower than 0")
-	}
-	return stock, nil
+	return &Stock{
+		Article:   article,
+		Size:      strings.ToUpper(size),
+		CreatedAt: int32(time.Now().Unix()),
+	}, nil
+}
+
+func (s *Stock) SetID(id primitive.ObjectID) {
+	s.ID = id
 }

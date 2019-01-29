@@ -14,20 +14,20 @@ var TypeOrder = graphql.NewObject(
 		Name:        "Order",
 		Description: "A ship in the Star Wars saga",
 		Fields: graphql.Fields{
-			"id":      &FieldID,
-			"article": &FieldArticle,
-			"user":    &FieldUser,
-			"size": &graphql.Field{
-				Type: graphql.String,
-			},
-			"createAt": &graphql.Field{
-				Type: graphql.Int,
-			},
-			"updateAt": &graphql.Field{
-				Type: graphql.Int,
-			},
+			"id":    &FieldID,
+			"stock": &FieldStock,
+			"user":  &FieldUser,
 			"state": &graphql.Field{
 				Type: enums.EnumOrderStatus,
+			},
+			"notes": &graphql.Field{
+				Type: graphql.String,
+			},
+			"createdAt": &graphql.Field{
+				Type: graphql.Int,
+			},
+			"updatedAt": &graphql.Field{
+				Type: graphql.Int,
 			},
 		},
 	},

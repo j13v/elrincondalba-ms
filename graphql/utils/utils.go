@@ -142,7 +142,7 @@ func ConnectionFromArraySlice(
 	return conn
 }
 
-func GetValueByJSONTag(value interface{}, tagName string) (string, bool) {
+func GetValueByJSONTag(value interface{}, tagName string) (interface{}, bool) {
 	elem := reflect.ValueOf(value)
 	if elem.Kind() == reflect.Ptr {
 		elem = elem.Elem()
@@ -151,13 +151,11 @@ func GetValueByJSONTag(value interface{}, tagName string) (string, bool) {
 		elemField := elem.Field(i)
 		typeField := elem.Type().Field(i)
 		if tagArgs := strings.Split(typeField.Tag.Get("json"), ","); tagArgs[0] == tagName {
-			if str, ok := elemField.Interface().(string); ok {
-				return str, true
-			}
+			return elemField.Interface(), true
 		}
 
 	}
-	return "", false
+	return nil, false
 }
 
 type ConnectionConfig struct {

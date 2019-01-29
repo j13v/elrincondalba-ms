@@ -7,6 +7,7 @@ import (
 
 	defs "github.com/jal88/elrincondalba-ms/definitions"
 	"github.com/mongodb/mongo-go-driver/bson"
+	"github.com/mongodb/mongo-go-driver/bson/primitive"
 	"github.com/mongodb/mongo-go-driver/mongo"
 )
 
@@ -18,7 +19,7 @@ func NewModelArticle(db *mongo.Database) *ModelArticle {
 	return &ModelArticle{collection: db.Collection("article")}
 }
 
-func (model *ModelArticle) Create(article *defs.Article) (interface{}, error) {
+func (model *ModelArticle) Create(article *defs.Article) (*defs.Article, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	val, err := bson.Marshal(article)
@@ -29,7 +30,8 @@ func (model *ModelArticle) Create(article *defs.Article) (interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
-	return res.InsertedID, err
+	article.ID = res.InsertedID.(primitive.ObjectID)
+	return article, err
 }
 
 func (model *ModelArticle) FindOne(args map[string]interface{}) (interface{}, error) {
@@ -71,3 +73,7 @@ func (model *ModelArticle) GetCount() (int64, error) {
 	count, err := GetCount(model.collection, context.Background())
 	return count, err
 }
+
+// func (model *ModelArticle) SetStock(id sring, size string, count int) error {
+//
+// }

@@ -6,6 +6,7 @@ import (
 
 	defs "github.com/jal88/elrincondalba-ms/definitions"
 	"github.com/mongodb/mongo-go-driver/bson"
+	"github.com/mongodb/mongo-go-driver/bson/primitive"
 	"github.com/mongodb/mongo-go-driver/mongo"
 )
 
@@ -17,7 +18,7 @@ func NewModelUser(db *mongo.Database) *ModelUser {
 	return &ModelUser{collection: db.Collection("user")}
 }
 
-func (model *ModelUser) Create(user *defs.User) (interface{}, error) {
+func (model *ModelUser) Create(user *defs.User) (*defs.User, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	val, err := bson.Marshal(user)
@@ -28,7 +29,8 @@ func (model *ModelUser) Create(user *defs.User) (interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
-	return res.InsertedID, err
+	user.ID = res.InsertedID.(primitive.ObjectID)
+	return user, err
 }
 
 func (model *ModelUser) FindOne(args map[string]interface{}) (interface{}, error) {
