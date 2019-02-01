@@ -1,6 +1,8 @@
 package mongodb
 
 import (
+	"fmt"
+
 	defs "github.com/jal88/elrincondalba-ms/definitions"
 	"github.com/mongodb/mongo-go-driver/mongo"
 )
@@ -8,23 +10,23 @@ import (
 func InitData(db *mongo.Database) {
 	model := CreateModel(db)
 
-	user1, _ := model.User.Create(&defs.User{
-		DNI:     "50333339K",
-		Name:    "Jorge",
-		Surname: "Lopez Alonso",
-		Email:   "tuano@tuplacer.com",
-		Phone:   "690876646",
-		Address: "Calle de las delicias 69",
-	})
+	user1, _ := model.User.Create(
+		"50333339K",
+		"Jorge",
+		"Lopez Alonso",
+		"tuano@tuplacer.com",
+		"690876646",
+		"Calle de las delicias 69",
+	)
 
-	user2, _ := model.User.Create(&defs.User{
-		DNI:     "34546653L",
-		Name:    "Ruben",
-		Surname: "Lopez",
-		Email:   "pizarrin@gmial.com",
-		Phone:   "690876646",
-		Address: "Calle de las Mercedes 69",
-	})
+	user2, _ := model.User.Create(
+		"34546653L",
+		"Ruben",
+		"Lopez",
+		"pizarrin@gmial.com",
+		"690876646",
+		"Calle de las Mercedes 69",
+	)
 
 	article1, _ := model.Article.Create(&defs.Article{
 		Name:        "MiniFalda",
@@ -59,28 +61,29 @@ func InitData(db *mongo.Database) {
 		Rating:   3})
 
 	stock1, _ := model.Stock.Create(article1.ID, "S")
-
+	fmt.Printf(" Stock created succesfull : %v\n", stock1)
 	stock2, _ := model.Stock.Create(article1.ID, "L")
-
+	fmt.Printf(" Stock created succesfull : %v\n", stock2)
 	stock3, _ := model.Stock.Create(article2.ID, "S")
+	fmt.Printf(" Stock created succesfull : %v\n", stock3)
 
 	model.Stock.Create(article3.ID, "M")
 
-	model.Order.Create(&defs.Order{
-		User:  user1.ID,
-		Stock: stock1.ID,
-		Notes: "Solo por las mañanas, trabajo 24/7",
-	})
+	model.Order.Create(
+		user1.ID,
+		stock1.ID,
+		"Solo por las mañanas, trabajo 24/7",
+	)
 
-	model.Order.Create(&defs.Order{
-		User:  user2.ID,
-		Stock: stock2.ID,
-		Notes: "Solo por las tardes, trabajo la noche",
-	})
+	model.Order.Create(
+		user2.ID,
+		stock2.ID,
+		"Solo por las tardes, trabajo la noche",
+	)
 
-	model.Order.Create(&defs.Order{
-		User:  user1.ID,
-		Stock: stock3.ID,
-		Notes: "Solo por las mañanas, trabajo la noche",
-	})
+	model.Order.Create(
+		user1.ID,
+		stock3.ID,
+		"Solo por las mañanas, trabajo la noche",
+	)
 }

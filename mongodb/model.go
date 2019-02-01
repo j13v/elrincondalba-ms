@@ -14,8 +14,8 @@ type Model struct {
 func CreateModel(db *mongo.Database) Model {
 	models := Model{}
 	models.Article = NewModelArticle(db)
-	models.Order = NewModelOrder(db)
 	models.User = NewModelUser(db)
 	models.Stock = NewModelStock(db)
+	models.Order = NewModelOrder(db, models.Stock, models.User)
 	return models
 }

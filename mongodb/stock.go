@@ -50,6 +50,11 @@ func (model *ModelStock) FindOne(args map[string]interface{}) (interface{}, erro
 	return stock, err
 }
 
+func (model *ModelStock) FindById(id primitive.ObjectID) (interface{}, error) {
+	stock, err := model.FindOne(map[string]interface{}{"_id": id})
+	return stock, err
+}
+
 //
 // func (model *ModelStock) FindByStock(id string) ([]interface{}, error) {
 // 	article := defs.Stock{}
