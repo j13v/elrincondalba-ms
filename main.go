@@ -49,7 +49,9 @@ func main() {
 	if err != nil {
 		fmt.Print(err)
 	}
+
 	db := client.Database("elrincondalba")
+	db.Drop(ctx)
 	// Primary data initialization
 	mongodb.InitData(db)
 
