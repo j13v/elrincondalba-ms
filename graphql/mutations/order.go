@@ -9,8 +9,8 @@ import (
 )
 
 /*
-* Mutation Create Order
- */
+Mutation Create Order
+*/
 var Order = graphql.Fields{
 	"createOrder": &graphql.Field{
 		Type:        types.TypeOrder,
@@ -41,8 +41,8 @@ var Order = graphql.Fields{
 				Type: graphql.String,
 			},
 		},
-		Resolve: decs.ContextModelConsumer(func(params graphql.ResolveParams, model mongodb.Model) (interface{}, error) {
-			user, err := model.User.Create(
+		Resolve: decs.ContextRepoConsumer(func(params graphql.ResolveParams, repo mongodb.Repo) (interface{}, error) {
+			user, err := repo.User.Create(
 				params.Args["dni"].(string),
 				params.Args["name"].(string),
 				params.Args["surname"].(string),
@@ -50,14 +50,19 @@ var Order = graphql.Fields{
 				params.Args["phone"].(string),
 				params.Args["address"].(string),
 			)
-			oid, _ := primitive.ObjectIDFromHex(params.Args["stock"].(string))
-			order, err := model.Order.Create(
+			if err != nil {
+				return nil, err
+			}
+			oid, err := primitive.ObjectIDFromHex(params.Args["stock"].(string))
+			if err != nil {
+				return nil, err
+			}
+			order, err := repo.Order.Create(
 				oid,
 				user.ID,
 				params.Args["notes"].(string),
 			)
 			return order, err
-
 		}),
 	},
 	/*
@@ -74,10 +79,13 @@ var Order = graphql.Fields{
 				Type: graphql.NewNonNull(graphql.Int),
 			},
 		},
-		Resolve: decs.ContextModelConsumer(func(params graphql.ResolveParams, model mongodb.Model) (interface{}, error) {
-			oid, _ := primitive.ObjectIDFromHex(params.Args["id"].(string))
+		Resolve: decs.ContextRepoConsumer(func(params graphql.ResolveParams, repo mongodb.Repo) (interface{}, error) {
+			oid, err := primitive.ObjectIDFromHex(params.Args["id"].(string))
+			if err != nil {
+				return nil, err
+			}
 			state := int8(params.Args["state"].(int))
-			err := model.Order.UpdateState(oid, state)
+			err = repo.Order.UpdateState(oid, state)
 			return nil, err
 		}),
 	},
