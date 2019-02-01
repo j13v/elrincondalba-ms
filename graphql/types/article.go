@@ -35,6 +35,9 @@ var TypeArticleStock = graphql.NewObject(
 			"count": &graphql.Field{
 				Type: graphql.Int,
 			},
+			"refs": &graphql.Field{
+				Type: graphql.NewList(ObjectID),
+			},
 		},
 	},
 )

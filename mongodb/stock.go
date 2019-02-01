@@ -68,9 +68,9 @@ func (model *ModelStock) FindById(id primitive.ObjectID) (interface{}, error) {
 }
 
 type StockArticle struct {
-	Article primitive.ObjectID `bson:"article,omitempty" json:"article,omitempty"`
-	Size    string             `bson:"size" json:"size"`
-	Count   int32              `bson:"count" json:"count"`
+	Refs  []primitive.ObjectID `bson:"refs,omitempty" json:"refs,omitempty"`
+	Size  string               `bson:"size" json:"size"`
+	Count int32                `bson:"count" json:"count"`
 }
 
 func (model *ModelStock) FindByArticle(article primitive.ObjectID) (interface{}, error) {
@@ -81,14 +81,35 @@ func (model *ModelStock) FindByArticle(article primitive.ObjectID) (interface{},
 			},
 		},
 		bson.M{
+			"$lookup": bson.M{
+				"from":         "order",
+				"localField":   "_id",
+				"foreignField": "stock",
+				"as":           "order",
+			},
+		},
+		bson.M{
+			"$unwind": bson.M{
+				"path": "$order",
+				"preserveNullAndEmptyArrays": true,
+			},
+		},
+		bson.M{
+			"$match": bson.M{
+				"$or": bson.A{
+					bson.M{"order": bson.M{"$exists": false}},
+					bson.M{"order.state": bson.M{"$eq": defs.ORDER_STATUS_CANCELLED}},
+				},
+			},
+		},
+		bson.M{
 			"$group": bson.M{
 				"_id": bson.M{
 					"article": "$article",
 					"size":    "$size",
 				},
-				"count": bson.M{
-					"$sum": 1,
-				},
+				"refs":  bson.M{"$push": "$_id"},
+				"count": bson.M{"$sum": 1},
 			},
 		},
 		bson.M{
@@ -113,7 +134,11 @@ func (model *ModelStock) FindByArticle(article primitive.ObjectID) (interface{},
 			log.Fatal(err)
 			return nil, err
 		}
-		stock.Article = p["_id"].(bson.M)["article"].(primitive.ObjectID)
+		refs := p["refs"].(bson.A)
+		for _, item := range refs {
+			stock.Refs = append(stock.Refs, item.(primitive.ObjectID))
+		}
+
 		stock.Size = p["_id"].(bson.M)["size"].(string)
 		stock.Count = p["count"].(int32)
 		data = append(data, *stock)
