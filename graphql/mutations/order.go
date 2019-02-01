@@ -1,12 +1,88 @@
 package mutations
 
 import (
-	"math/rand"
-	"time"
-
 	"github.com/graphql-go/graphql"
-	"github.com/jal88/elrincondalba-ms/type"
+	decs "github.com/jal88/elrincondalba-ms/graphql/decorators"
+	"github.com/jal88/elrincondalba-ms/graphql/types"
+	"github.com/jal88/elrincondalba-ms/mongodb"
+	"github.com/mongodb/mongo-go-driver/bson/primitive"
 )
+
+/*
+* Mutation Create Order
+ */
+var Order = graphql.Fields{
+	"createOrder": &graphql.Field{
+		Type:        types.TypeOrder,
+		Description: "Create new order",
+		Args: graphql.FieldConfigArgument{
+			"stock": &graphql.ArgumentConfig{
+				Type: graphql.NewNonNull(types.ObjectID),
+			},
+			"dni": &graphql.ArgumentConfig{
+				Type: graphql.NewNonNull(graphql.String),
+			},
+			"name": &graphql.ArgumentConfig{
+				Type: graphql.NewNonNull(graphql.String),
+			},
+			"surname": &graphql.ArgumentConfig{
+				Type: graphql.NewNonNull(graphql.String),
+			},
+			"email": &graphql.ArgumentConfig{
+				Type: graphql.NewNonNull(graphql.String),
+			},
+			"phone": &graphql.ArgumentConfig{
+				Type: graphql.NewNonNull(graphql.String),
+			},
+			"address": &graphql.ArgumentConfig{
+				Type: graphql.NewNonNull(graphql.String),
+			},
+			"notes": &graphql.ArgumentConfig{
+				Type: graphql.String,
+			},
+		},
+		Resolve: decs.ContextModelConsumer(func(params graphql.ResolveParams, model mongodb.Model) (interface{}, error) {
+			user, err := model.User.Create(
+				params.Args["dni"].(string),
+				params.Args["name"].(string),
+				params.Args["surname"].(string),
+				params.Args["email"].(string),
+				params.Args["phone"].(string),
+				params.Args["address"].(string),
+			)
+			oid, _ := primitive.ObjectIDFromHex(params.Args["stock"].(string))
+			order, err := model.Order.Create(
+				oid,
+				user.ID,
+				params.Args["notes"].(string),
+			)
+			return order, err
+
+		}),
+	},
+	/*
+		Update state of a order
+	*/
+	"updateOrderState": &graphql.Field{
+		Type:        types.TypeOrder,
+		Description: "Update order state",
+		Args: graphql.FieldConfigArgument{
+			"id": &graphql.ArgumentConfig{
+				Type: graphql.NewNonNull(types.ObjectID),
+			},
+			"state": &graphql.ArgumentConfig{
+				Type: graphql.NewNonNull(graphql.Int),
+			},
+		},
+		Resolve: decs.ContextModelConsumer(func(params graphql.ResolveParams, model mongodb.Model) (interface{}, error) {
+			oid, _ := primitive.ObjectIDFromHex(params.Args["id"].(string))
+			state := int8(params.Args["state"].(int))
+			err := model.Order.UpdateState(oid, state)
+			return nil, err
+		}),
+	},
+}
+
 //
 // var Order = graphql.NewObject(graphql.ObjectConfig{
 // 	Name: "MutationOrder",

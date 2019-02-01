@@ -2,7 +2,6 @@ package types
 
 import (
 	"github.com/graphql-go/graphql"
-	"github.com/jal88/elrincondalba-ms/graphql/enums"
 	"github.com/jal88/elrincondalba-ms/graphql/utils"
 )
 
@@ -18,7 +17,7 @@ var TypeOrder = graphql.NewObject(
 			"stock": &FieldStock,
 			"user":  &FieldUser,
 			"state": &graphql.Field{
-				Type: enums.EnumOrderStatus,
+				Type: graphql.Int,
 			},
 			"notes": &graphql.Field{
 				Type: graphql.String,

@@ -2,6 +2,7 @@ package mongodb
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"time"
 
@@ -16,19 +17,36 @@ ModelOrder asd
 */
 type ModelOrder struct {
 	collection *mongo.Collection
+	stock      *ModelStock
+	user       *ModelUser
 }
 
 /*
 NewOrderModel
 */
-func NewModelOrder(db *mongo.Database) *ModelOrder {
-	return &ModelOrder{collection: db.Collection("order")}
+func NewModelOrder(db *mongo.Database, modelStock *ModelStock, modelUser *ModelUser) *ModelOrder {
+	return &ModelOrder{
+		collection: db.Collection("order"),
+		stock:      modelStock,
+		user:       modelUser,
+	}
 }
 
 /*
 Create
 */
-func (model *ModelOrder) Create(order *defs.Order) (*defs.Order, error) {
+func (model *ModelOrder) Create(stock primitive.ObjectID, user primitive.ObjectID, notes string) (*defs.Order, error) {
+	// Check if article exists then if not raise an error
+	if _, err := model.stock.FindById(stock); err != nil {
+		return nil, fmt.Errorf("No stock found by id %s", stock)
+	}
+	if _, err := model.user.FindById(user); err != nil {
+		return nil, fmt.Errorf("No user found by id %s", user)
+	}
+	order, err := defs.NewOrder(stock, user, notes)
+	if err != nil {
+		return nil, err
+	}
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	val, err := bson.Marshal(order)
@@ -56,6 +74,11 @@ func (model *ModelOrder) FindOne(args map[string]interface{}) (interface{}, erro
 	return order, err
 }
 
+func (model *ModelOrder) FindById(id primitive.ObjectID) (interface{}, error) {
+	order, err := model.FindOne(map[string]interface{}{"_id": id})
+	return order, err
+}
+
 func (model *ModelOrder) FindSlice(args map[string]interface{}) ([]interface{}, *FindSliceMetadata, error) {
 
 	data, meta, err := FindSlice(model.collection, context.Background(), args)
@@ -76,6 +99,36 @@ func (model *ModelOrder) FindSlice(args map[string]interface{}) ([]interface{}, 
 	}
 
 	return interfaceSlice, meta, nil
+}
+
+func (model *ModelOrder) UpdateState(id primitive.ObjectID, state int8) error {
+	currentState, err := model.GetState(id)
+	if err != nil {
+		return err
+	}
+	if err := defs.ValidateNextOrderState(currentState, state); err != nil {
+		return err
+	}
+	if _, err := model.collection.UpdateOne(
+		context.Background(),
+		map[string]interface{}{"_id": id},
+		bson.M{
+			"$set": bson.M{"state": state},
+		},
+	); err != nil {
+		return err
+	}
+	return nil
+}
+func (model *ModelOrder) GetState(id primitive.ObjectID) (int8, error) {
+	order, err := model.FindById(id)
+	fmt.Printf("Yo pasaba por acá en la jurisdiccion %v %v\n", order, err)
+	if err != nil {
+		return 0, err
+	}
+
+	orderStruct := order.(defs.Order)
+	return orderStruct.State, nil
 }
 
 func (model *ModelOrder) GetCount() (int64, error) {

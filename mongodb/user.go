@@ -18,7 +18,11 @@ func NewModelUser(db *mongo.Database) *ModelUser {
 	return &ModelUser{collection: db.Collection("user")}
 }
 
-func (model *ModelUser) Create(user *defs.User) (*defs.User, error) {
+func (model *ModelUser) Create(dni string, name string, surname string, email string, phone string, address string) (*defs.User, error) {
+	user, err := defs.NewUser(dni, name, surname, email, phone, address)
+	if err != nil {
+		return nil, err
+	}
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	val, err := bson.Marshal(user)
@@ -43,5 +47,10 @@ func (model *ModelUser) FindOne(args map[string]interface{}) (interface{}, error
 	if err != nil {
 		return nil, err
 	}
+	return user, err
+}
+
+func (model *ModelUser) FindById(id primitive.ObjectID) (interface{}, error) {
+	user, err := model.FindOne(map[string]interface{}{"_id": id})
 	return user, err
 }
