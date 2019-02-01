@@ -2,6 +2,7 @@ package mongodb
 
 import (
 	"context"
+	"log"
 	"time"
 
 	defs "github.com/jal88/elrincondalba-ms/definitions"
@@ -64,6 +65,61 @@ func (model *ModelStock) FindOne(args map[string]interface{}) (interface{}, erro
 func (model *ModelStock) FindById(id primitive.ObjectID) (interface{}, error) {
 	stock, err := model.FindOne(map[string]interface{}{"_id": id})
 	return stock, err
+}
+
+type StockArticle struct {
+	Article primitive.ObjectID `bson:"article,omitempty" json:"article,omitempty"`
+	Size    string             `bson:"size" json:"size"`
+	Count   int32              `bson:"count" json:"count"`
+}
+
+func (model *ModelStock) FindByArticle(article primitive.ObjectID) (interface{}, error) {
+	pipeline := bson.A{
+		bson.M{
+			"$match": bson.M{
+				"article": article,
+			},
+		},
+		bson.M{
+			"$group": bson.M{
+				"_id": bson.M{
+					"article": "$article",
+					"size":    "$size",
+				},
+				"count": bson.M{
+					"$sum": 1,
+				},
+			},
+		},
+		bson.M{
+			"$sort": bson.M{
+				"_id.article": 1,
+				"_id.size":    1,
+			},
+		},
+	}
+	ctx := context.Background()
+	cursor, err := model.collection.Aggregate(ctx, pipeline)
+	if err != nil {
+		log.Fatal(err)
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+	data := []StockArticle{}
+	for cursor.Next(ctx) {
+		stock := &StockArticle{}
+		p := bson.M{}
+		if err = cursor.Decode(&p); err != nil {
+			log.Fatal(err)
+			return nil, err
+		}
+		stock.Article = p["_id"].(bson.M)["article"].(primitive.ObjectID)
+		stock.Size = p["_id"].(bson.M)["size"].(string)
+		stock.Count = p["count"].(int32)
+		data = append(data, *stock)
+	}
+
+	return data, err
 }
 
 //
