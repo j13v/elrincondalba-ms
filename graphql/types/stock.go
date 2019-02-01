@@ -13,7 +13,7 @@ FieldArticle GraphQL field
 var FieldStock = graphql.Field{
 	Type:        TypeStock,
 	Description: "Stock",
-	Resolve: decs.ContextModelConsumer(func(params graphql.ResolveParams, model mongodb.Model) (interface{}, error) {
+	Resolve: decs.ContextRepoConsumer(func(params graphql.ResolveParams, model mongodb.Repo) (interface{}, error) {
 		if id, ok := utils.GetValueByJSONTag(params.Source, "stock"); ok {
 			stock, err := model.Stock.FindOne(map[string]interface{}{"id": id})
 			return stock, err

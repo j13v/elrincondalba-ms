@@ -2,15 +2,16 @@ package mongodb
 
 import (
 	"fmt"
+	"log"
 
 	defs "github.com/jal88/elrincondalba-ms/definitions"
 	"github.com/mongodb/mongo-go-driver/mongo"
 )
 
 func InitData(db *mongo.Database) {
-	model := CreateModel(db)
+	model := CreateRepo(db)
 
-	user1, _ := model.User.Create(
+	user1, err := model.User.Create(
 		"50333339K",
 		"Jorge",
 		"Lopez Alonso",
@@ -19,7 +20,11 @@ func InitData(db *mongo.Database) {
 		"Calle de las delicias 69",
 	)
 
-	user2, _ := model.User.Create(
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	user2, err := model.User.Create(
 		"34546653L",
 		"Ruben",
 		"Lopez",
@@ -28,7 +33,11 @@ func InitData(db *mongo.Database) {
 		"Calle de las Mercedes 69",
 	)
 
-	article1, _ := model.Article.Create(&defs.Article{
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	article1, err := model.Article.Create(&defs.Article{
 		Name:        "MiniFalda",
 		Description: "Chicha morada is a beverage originated in the Andean regions of Perú but is actually consumed at a national level (wiki)",
 		Price:       7.99,
@@ -39,7 +48,11 @@ func InitData(db *mongo.Database) {
 		Rating:   2,
 	})
 
-	article2, _ := model.Article.Create(&defs.Article{
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	article2, err := model.Article.Create(&defs.Article{
 		Name:        "Sandalia",
 		Description: "Chicha morada is a beverage originated in the Andean regions of Perú but is actually consumed at a national level (wiki)",
 		Price:       17.99,
@@ -49,7 +62,11 @@ func InitData(db *mongo.Database) {
 		Category: "Zapatos",
 		Rating:   4})
 
-	article3, _ := model.Article.Create(&defs.Article{
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	article3, err := model.Article.Create(&defs.Article{
 		Name:        "Camiseta de tirante",
 		Description: "Chicha morada is a beverage originated in the Andean regions of Perú but is actually consumed at a national level (wiki)",
 		Price:       33.99,
@@ -60,30 +77,85 @@ func InitData(db *mongo.Database) {
 		Category: "Camisetas",
 		Rating:   3})
 
-	stock1, _ := model.Stock.Create(article1.ID, "S")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	stock1, err := model.Stock.Create(article1.ID, "S")
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	fmt.Printf(" Stock created succesfull : %v\n", stock1)
-	stock2, _ := model.Stock.Create(article1.ID, "L")
+
+	stock2, err := model.Stock.Create(article1.ID, "L")
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	fmt.Printf(" Stock created succesfull : %v\n", stock2)
-	stock3, _ := model.Stock.Create(article2.ID, "S")
+
+	stock3, err := model.Stock.Create(article1.ID, "S")
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	fmt.Printf(" Stock created succesfull : %v\n", stock3)
 
-	model.Stock.Create(article3.ID, "M")
+	stock4, err := model.Stock.Create(article1.ID, "L")
 
-	model.Order.Create(
-		user1.ID,
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Printf(" Stock created succesfull : %v\n", stock4)
+
+	stock5, err := model.Stock.Create(article2.ID, "S")
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Printf(" Stock created succesfull : %v\n", stock5)
+
+	_, err = model.Stock.Create(article3.ID, "M")
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	order1, err := model.Order.Create(
 		stock1.ID,
+		user1.ID,
 		"Solo por las mañanas, trabajo 24/7",
 	)
 
-	model.Order.Create(
-		user2.ID,
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	_, err = model.Order.Create(
 		stock2.ID,
+		user2.ID,
 		"Solo por las tardes, trabajo la noche",
 	)
 
-	model.Order.Create(
-		user1.ID,
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	_, err = model.Order.Create(
 		stock3.ID,
+		user1.ID,
 		"Solo por las mañanas, trabajo la noche",
 	)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	model.Order.UpdateState(order1.ID, 5)
 }

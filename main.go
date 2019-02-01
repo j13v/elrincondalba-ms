@@ -70,7 +70,7 @@ func main() {
 		if err != nil {
 			panic(err)
 		}
-		model := mongodb.CreateModel(db)
+		repo := mongodb.CreateRepo(db)
 
 		// u := struct{
 		// 	GetName()
@@ -80,7 +80,7 @@ func main() {
 		// }
 
 		ctx := context.Background()
-		ctx = decs.ContextModelApply(model)(ctx)
+		ctx = decs.ContextRepoApply(repo)(ctx)
 		// ctx = decs.DecoratorContextUserApply(u)(ctx)
 
 		result := executeQuery(
@@ -176,11 +176,16 @@ var page = []byte(`
 										"    }",
 										"}",
 										"fragment ArticleFields on Article {",
+										"  id",
+										"  name",
 										"  category",
 										"  description",
-										"  id",
 										"  images",
-										"  name",
+										"  stock {",
+										"    count",
+										"    size",
+										"    refs",
+										"  }",
 										"  price",
 										"  rating",
 										"  createdAt",

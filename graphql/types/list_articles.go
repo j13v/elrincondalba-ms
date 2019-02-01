@@ -37,7 +37,7 @@ var FieldListArticles = &graphql.Field{
 	Type:        TypeArticleConnection,
 	Description: "Get articles list",
 	Args:        relay.ConnectionArgs,
-	Resolve: decs.ContextModelConsumer(func(params graphql.ResolveParams, model mongodb.Model) (interface{}, error) {
+	Resolve: decs.ContextRepoConsumer(func(params graphql.ResolveParams, model mongodb.Repo) (interface{}, error) {
 		connArgs := relay.NewConnectionArguments(params.Args)
 		articles, meta, err := model.Article.FindSlice(params.Args)
 		return utils.ConnectionFromArraySlice(articles, connArgs, meta), err
