@@ -8,13 +8,6 @@ import (
 	"github.com/mongodb/mongo-go-driver/bson/primitive"
 )
 
-func coerceString(value interface{}) interface{} {
-	if v, ok := value.(primitive.ObjectID); ok {
-		return v.Hex()
-	}
-	return fmt.Sprintf("%v", value)
-}
-
 var ObjectID = graphql.NewScalar(graphql.ScalarConfig{
 	Name: "ObjectID",
 	Description: "The `ID` scalar type represents a unique identifier, often used to " +
@@ -23,8 +16,18 @@ var ObjectID = graphql.NewScalar(graphql.ScalarConfig{
 		"a 4-byte value representing the seconds since the Unix epoch" +
 		"a 5-byte random value, and" +
 		"a 3-byte counter, starting with a random value.",
-	Serialize:  coerceString,
-	ParseValue: coerceString,
+	Serialize: func(value interface{}) interface{} {
+		if oid, ok := value.(primitive.ObjectID); ok {
+			return oid
+		}
+		return nil
+	},
+	ParseValue: func(value interface{}) interface{} {
+		if v, ok := value.(primitive.ObjectID); ok {
+			return v.Hex()
+		}
+		return fmt.Sprintf("%v", value)
+	},
 	ParseLiteral: func(valueAST ast.Value) interface{} {
 		switch valueAST := valueAST.(type) {
 		case *ast.StringValue:

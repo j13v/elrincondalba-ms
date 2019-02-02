@@ -39,28 +39,3 @@ var TypeOrderConnection = utils.ConnectionDefinitions(utils.ConnectionConfig{
 	Name:     "Order",
 	NodeType: TypeOrder,
 })
-
-// var OrderEdge = graphql.NewObject(
-// 	graphql.ObjectConfig{
-// 		Name: "OrderEdge",
-// 		Fields: graphql.Fields{
-// 			"cursor": &graphql.Field{
-// 				Type: graphql.String,
-// 			},
-// 			"node": &graphql.Field{
-// 				Type: Order,
-// 			},
-// 		},
-// 	},
-// )
-//
-// var OrderConnection = graphql.NewObject(
-// 	graphql.ObjectConfig{
-// 		Name: "OrderConnection",
-// 		Fields: graphql.Fields{
-// 			"edges": &graphql.Field{
-// 				Type: graphql.NewList(ArticleEdge),
-// 			},
-// 		},
-// 	},
-// )

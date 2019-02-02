@@ -1,4 +1,4 @@
-package mongodb
+package models
 
 import (
 	"context"
@@ -6,6 +6,7 @@ import (
 	"time"
 
 	defs "github.com/jal88/elrincondalba-ms/definitions"
+	oprs "github.com/jal88/elrincondalba-ms/mongodb/operators"
 	"github.com/mongodb/mongo-go-driver/bson"
 	"github.com/mongodb/mongo-go-driver/bson/primitive"
 	"github.com/mongodb/mongo-go-driver/mongo"
@@ -34,9 +35,9 @@ func (model *ModelArticle) Create(article *defs.Article) (*defs.Article, error) 
 	return article, err
 }
 
-func (model *ModelArticle) FindOne(args map[string]interface{}) (interface{}, error) {
+func (model *ModelArticle) FindOne(args *map[string]interface{}) (interface{}, error) {
 	article := defs.Article{}
-	cursor, err := FindOne(model.collection, context.Background(), args)
+	cursor, err := oprs.FindOne(model.collection, context.Background(), args)
 	if err != nil {
 		return nil, err
 	}
@@ -48,13 +49,12 @@ func (model *ModelArticle) FindOne(args map[string]interface{}) (interface{}, er
 }
 
 func (model *ModelArticle) FindById(id primitive.ObjectID) (interface{}, error) {
-	article, err := model.FindOne(map[string]interface{}{"_id": id})
+	article, err := model.FindOne(&map[string]interface{}{"_id": id})
 	return article, err
 }
 
-func (model *ModelArticle) FindSlice(args map[string]interface{}) ([]interface{}, *FindSliceMetadata, error) {
-
-	data, meta, err := FindSlice(model.collection, context.Background(), args)
+func (model *ModelArticle) FindSlice(args *map[string]interface{}) ([]interface{}, *oprs.FindSliceMetadata, error) {
+	data, meta, err := oprs.FindSlice(model.collection, context.Background(), args)
 	if err != nil {
 		log.Fatal(err)
 		return nil, meta, err
@@ -75,10 +75,6 @@ func (model *ModelArticle) FindSlice(args map[string]interface{}) ([]interface{}
 }
 
 func (model *ModelArticle) GetCount() (int64, error) {
-	count, err := GetCount(model.collection, context.Background())
+	count, err := oprs.GetCount(model.collection, context.Background())
 	return count, err
 }
-
-// func (model *ModelArticle) SetStock(id sring, size string, count int) error {
-//
-// }

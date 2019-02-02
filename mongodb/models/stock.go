@@ -1,4 +1,4 @@
-package mongodb
+package models
 
 import (
 	"context"
@@ -6,6 +6,7 @@ import (
 	"time"
 
 	defs "github.com/jal88/elrincondalba-ms/definitions"
+	oprs "github.com/jal88/elrincondalba-ms/mongodb/operators"
 	"github.com/mongodb/mongo-go-driver/bson"
 	"github.com/mongodb/mongo-go-driver/bson/primitive"
 	"github.com/mongodb/mongo-go-driver/mongo"
@@ -49,9 +50,9 @@ func (model *ModelStock) Create(article primitive.ObjectID, size string) (*defs.
 	return stock, err
 }
 
-func (model *ModelStock) FindOne(args map[string]interface{}) (interface{}, error) {
+func (model *ModelStock) FindOne(args *map[string]interface{}) (interface{}, error) {
 	stock := defs.Stock{}
-	cursor, err := FindOne(model.collection, context.Background(), args)
+	cursor, err := oprs.FindOne(model.collection, context.Background(), args)
 	if err != nil {
 		return nil, err
 	}
@@ -62,8 +63,8 @@ func (model *ModelStock) FindOne(args map[string]interface{}) (interface{}, erro
 	return stock, err
 }
 
-func (model *ModelStock) FindById(id primitive.ObjectID) (interface{}, error) {
-	stock, err := model.FindOne(map[string]interface{}{"_id": id})
+func (model *ModelStock) FindById(id interface{}) (interface{}, error) {
+	stock, err := model.FindOne(&map[string]interface{}{"_id": id.(primitive.ObjectID)})
 	return stock, err
 }
 
@@ -73,11 +74,11 @@ type StockArticle struct {
 	Count int32                `bson:"count" json:"count"`
 }
 
-func (model *ModelStock) FindByArticle(article primitive.ObjectID) (interface{}, error) {
+func (model *ModelStock) FindByArticle(article interface{}) (interface{}, error) {
 	pipeline := bson.A{
 		bson.M{
 			"$match": bson.M{
-				"article": article,
+				"article": article.(primitive.ObjectID),
 			},
 		},
 		bson.M{
@@ -147,6 +148,11 @@ func (model *ModelStock) FindByArticle(article primitive.ObjectID) (interface{},
 	return data, err
 }
 
+func (model *ModelStock) GetCount() (int64, error) {
+	count, err := oprs.GetCount(model.collection, context.Background())
+	return count, err
+}
+
 //
 // func (model *ModelStock) FindByStock(id string) ([]interface{}, error) {
 // 	article := defs.Stock{}
@@ -213,8 +219,3 @@ func (model *ModelStock) FindByArticle(article primitive.ObjectID) (interface{},
 //
 // 	return interfaceSlice, meta, nil
 // }
-
-func (model *ModelStock) GetCount() (int64, error) {
-	count, err := GetCount(model.collection, context.Background())
-	return count, err
-}

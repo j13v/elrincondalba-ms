@@ -15,7 +15,7 @@ var FieldStock = graphql.Field{
 	Description: "Stock",
 	Resolve: decs.ContextRepoConsumer(func(params graphql.ResolveParams, model mongodb.Repo) (interface{}, error) {
 		if id, ok := utils.GetValueByJSONTag(params.Source, "stock"); ok {
-			stock, err := model.Stock.FindOne(map[string]interface{}{"id": id})
+			stock, err := model.Stock.FindOne(utils.NewIdArgs(id))
 			return stock, err
 
 		}

@@ -89,6 +89,104 @@ var Order = graphql.Fields{
 			return nil, err
 		}),
 	},
+	/*
+		Purchase order
+	*/
+	"purchaseOrder": &graphql.Field{
+		Type:        types.TypeOrder,
+		Description: "Purchase order",
+		Args: graphql.FieldConfigArgument{
+			"id": &graphql.ArgumentConfig{
+				Type: graphql.NewNonNull(types.ObjectID),
+			},
+			"paymentMethod": &graphql.ArgumentConfig{
+				Type: graphql.NewNonNull(graphql.Int),
+			},
+			"paymentRef": &graphql.ArgumentConfig{
+				Type: graphql.NewNonNull(graphql.String),
+			},
+		},
+		Resolve: decs.ContextRepoConsumer(func(params graphql.ResolveParams, repo mongodb.Repo) (interface{}, error) {
+			oid, err := primitive.ObjectIDFromHex(params.Args["id"].(string))
+			if err != nil {
+				return nil, err
+			}
+			paymentMethod := int8(params.Args["paymentMethod"].(int))
+			err = repo.Order.Purchase(oid, paymentMethod, params.Args["purchaseRef"].(string))
+			return nil, err
+		}),
+	},
+	"prepareOrder": &graphql.Field{
+		Type:        types.TypeOrder,
+		Description: "Purchase order",
+		Args: graphql.FieldConfigArgument{
+			"id": &graphql.ArgumentConfig{
+				Type: graphql.NewNonNull(types.ObjectID),
+			},
+		},
+		Resolve: decs.ContextRepoConsumer(func(params graphql.ResolveParams, repo mongodb.Repo) (interface{}, error) {
+			oid, err := primitive.ObjectIDFromHex(params.Args["id"].(string))
+			if err != nil {
+				return nil, err
+			}
+			err = repo.Order.Prepare(oid)
+			return nil, err
+		}),
+	},
+	"shipOrder": &graphql.Field{
+		Type:        types.TypeOrder,
+		Description: "Purchase order",
+		Args: graphql.FieldConfigArgument{
+			"id": &graphql.ArgumentConfig{
+				Type: graphql.NewNonNull(types.ObjectID),
+			},
+			"trackingRef": &graphql.ArgumentConfig{
+				Type: graphql.NewNonNull(graphql.String),
+			},
+		},
+		Resolve: decs.ContextRepoConsumer(func(params graphql.ResolveParams, repo mongodb.Repo) (interface{}, error) {
+			oid, err := primitive.ObjectIDFromHex(params.Args["id"].(string))
+			if err != nil {
+				return nil, err
+			}
+			err = repo.Order.Ship(oid, params.Args["trackingRef"].(string))
+			return nil, err
+		}),
+	},
+	"confirmReceived": &graphql.Field{
+		Type:        types.TypeOrder,
+		Description: "Purchase order",
+		Args: graphql.FieldConfigArgument{
+			"id": &graphql.ArgumentConfig{
+				Type: graphql.NewNonNull(types.ObjectID),
+			},
+		},
+		Resolve: decs.ContextRepoConsumer(func(params graphql.ResolveParams, repo mongodb.Repo) (interface{}, error) {
+			oid, err := primitive.ObjectIDFromHex(params.Args["id"].(string))
+			if err != nil {
+				return nil, err
+			}
+			err = repo.Order.ConfirmReceived(oid)
+			return nil, err
+		}),
+	},
+	"cancelOrder": &graphql.Field{
+		Type:        graphql.Boolean,
+		Description: "Purchase order",
+		Args: graphql.FieldConfigArgument{
+			"id": &graphql.ArgumentConfig{
+				Type: graphql.NewNonNull(types.ObjectID),
+			},
+		},
+		Resolve: decs.ContextRepoConsumer(func(params graphql.ResolveParams, repo mongodb.Repo) (interface{}, error) {
+			oid, err := primitive.ObjectIDFromHex(params.Args["id"].(string))
+			if err != nil {
+				return nil, err
+			}
+			err = repo.Order.Cancel(oid)
+			return true, err
+		}),
+	},
 }
 
 //

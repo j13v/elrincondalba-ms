@@ -1,10 +1,11 @@
-package mongodb
+package models
 
 import (
 	"context"
 	"time"
 
 	defs "github.com/jal88/elrincondalba-ms/definitions"
+	oprs "github.com/jal88/elrincondalba-ms/mongodb/operators"
 	"github.com/mongodb/mongo-go-driver/bson"
 	"github.com/mongodb/mongo-go-driver/bson/primitive"
 	"github.com/mongodb/mongo-go-driver/mongo"
@@ -37,9 +38,9 @@ func (model *ModelUser) Create(dni string, name string, surname string, email st
 	return user, err
 }
 
-func (model *ModelUser) FindOne(args map[string]interface{}) (interface{}, error) {
+func (model *ModelUser) FindOne(args *map[string]interface{}) (interface{}, error) {
 	user := defs.User{}
-	cursor, err := FindOne(model.collection, context.Background(), args)
+	cursor, err := oprs.FindOne(model.collection, context.Background(), args)
 	if err != nil {
 		return nil, err
 	}
@@ -51,6 +52,6 @@ func (model *ModelUser) FindOne(args map[string]interface{}) (interface{}, error
 }
 
 func (model *ModelUser) FindById(id primitive.ObjectID) (interface{}, error) {
-	user, err := model.FindOne(map[string]interface{}{"_id": id})
+	user, err := model.FindOne(&map[string]interface{}{"_id": id})
 	return user, err
 }
