@@ -51,6 +51,8 @@ func InitData(db *mongo.Database) {
 		log.Fatal(err)
 	}
 
+	fmt.Printf(" Article created succesfull : %v\n", article1)
+
 	article2, err := model.Article.Create(
 		"Sandalia",
 		"Chicha morada is a beverage originated in the Andean regions of Perú but is actually consumed at a national level (wiki)",
@@ -64,6 +66,8 @@ func InitData(db *mongo.Database) {
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	fmt.Printf(" Article created succesfull : %v\n", article2)
 
 	article3, err := model.Article.Create(
 		"Camiseta de tirante",
@@ -79,6 +83,93 @@ func InitData(db *mongo.Database) {
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	fmt.Printf(" Article created succesfull : %v\n", article3)
+
+	article4, err := model.Article.Create(
+		"Camiseta de tirante",
+		"Chicha morada is a beverage originated in the Andean regions of Perú but is actually consumed at a national level (wiki)",
+		33.99,
+		[]string{
+			"637f1f77bcf86cd799439011",
+			"637f1f77bcf86cd799439012",
+			"637f1f77bcf86cd799439013"},
+		"Camisetas",
+		4)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Printf(" Article created succesfull : %v\n", article4)
+
+	article5, err := model.Article.Create(
+		"Camiseta de tirante",
+		"Chicha morada is a beverage originated in the Andean regions of Perú but is actually consumed at a national level (wiki)",
+		33.99,
+		[]string{
+			"637f1f77bcf86cd799439011",
+			"637f1f77bcf86cd799439012",
+			"637f1f77bcf86cd799439013"},
+		"Camisetas",
+		5)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Printf(" Article created succesfull : %v\n", article5)
+
+	article6, err := model.Article.Create(
+		"Camiseta de tirante",
+		"Chicha morada is a beverage originated in the Andean regions of Perú but is actually consumed at a national level (wiki)",
+		33.99,
+		[]string{
+			"637f1f77bcf86cd799439011",
+			"637f1f77bcf86cd799439012",
+			"637f1f77bcf86cd799439013"},
+		"Camisetas",
+		4)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Printf(" Article created succesfull : %v\n", article6)
+
+	article7, err := model.Article.Create(
+		"Camiseta de tirante",
+		"Chicha morada is a beverage originated in the Andean regions of Perú but is actually consumed at a national level (wiki)",
+		33.99,
+		[]string{
+			"637f1f77bcf86cd799439011",
+			"637f1f77bcf86cd799439012",
+			"637f1f77bcf86cd799439013"},
+		"Camisetas",
+		3)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Printf(" Article created succesfull : %v\n", article7)
+
+	article8, err := model.Article.Create(
+		"Camiseta de tirante",
+		"Chicha morada is a beverage originated in the Andean regions of Perú but is actually consumed at a national level (wiki)",
+		33.99,
+		[]string{
+			"637f1f77bcf86cd799439011",
+			"637f1f77bcf86cd799439012",
+			"637f1f77bcf86cd799439013"},
+		"Camisetas",
+		3)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Printf(" Article created succesfull : %v\n", article8)
 
 	stock1, err := model.Stock.Create(article1.ID, "S")
 
