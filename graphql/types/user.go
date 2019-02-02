@@ -15,7 +15,7 @@ var FieldUser = graphql.Field{
 	Description: "User",
 	Resolve: decs.ContextRepoConsumer(func(params graphql.ResolveParams, model mongodb.Repo) (interface{}, error) {
 		if id, ok := utils.GetValueByJSONTag(params.Source, "user"); ok {
-			user, err := model.User.FindOne(map[string]interface{}{"id": id})
+			user, err := model.User.FindOne(utils.NewIdArgs(id))
 			return user, err
 
 		}

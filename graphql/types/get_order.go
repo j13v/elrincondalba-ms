@@ -15,7 +15,7 @@ var FieldGetOrder = &graphql.Field{
 		},
 	},
 	Resolve: decs.ContextRepoConsumer(func(params graphql.ResolveParams, model mongodb.Repo) (interface{}, error) {
-		order, err := model.Order.FindOne(params.Args)
+		order, err := model.Order.FindOne(&params.Args)
 		return order, err
 	}),
 }

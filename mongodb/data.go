@@ -137,6 +137,8 @@ func InitData(db *mongo.Database) {
 		log.Fatal(err)
 	}
 
+	fmt.Printf(" Order created succesfull : %v\n", order1)
+
 	_, err = model.Order.Create(
 		stock2.ID,
 		user2.ID,

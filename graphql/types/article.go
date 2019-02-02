@@ -5,7 +5,6 @@ import (
 	decs "github.com/jal88/elrincondalba-ms/graphql/decorators"
 	"github.com/jal88/elrincondalba-ms/graphql/utils"
 	"github.com/jal88/elrincondalba-ms/mongodb"
-	"github.com/mongodb/mongo-go-driver/bson/primitive"
 )
 
 /*
@@ -16,7 +15,7 @@ var FieldArticle = graphql.Field{
 	Description: "Article",
 	Resolve: decs.ContextRepoConsumer(func(params graphql.ResolveParams, model mongodb.Repo) (interface{}, error) {
 		if id, ok := utils.GetValueByJSONTag(params.Source, "article"); ok {
-			article, err := model.Article.FindOne(map[string]interface{}{"id": id})
+			article, err := model.Article.FindOne(utils.NewIdArgs(id))
 			return article, err
 
 		}
@@ -78,7 +77,7 @@ var TypeArticle = graphql.NewObject(
 				Type: graphql.NewList(TypeArticleStock),
 				Resolve: decs.ContextRepoConsumer(func(params graphql.ResolveParams, model mongodb.Repo) (interface{}, error) {
 					if id, ok := utils.GetValueByJSONTag(params.Source, "id"); ok {
-						stock, err := model.Stock.FindByArticle(id.(primitive.ObjectID))
+						stock, err := model.Stock.FindByArticle(id)
 						return stock, err
 					}
 					return nil, nil

@@ -1,14 +1,27 @@
 package utils
 
 import (
+	"encoding/base64"
+	"encoding/hex"
 	"encoding/json"
 	"reflect"
 	"strings"
 
 	"github.com/graphql-go/graphql"
 	"github.com/graphql-go/relay"
-	"github.com/jal88/elrincondalba-ms/mongodb"
+	"github.com/jal88/elrincondalba-ms/mongodb/helpers"
 )
+
+func HexToBase64(strHex string) (string, error) {
+	src := []byte(strHex)
+
+	dst := make([]byte, hex.DecodedLen(len(src)))
+	_, err := hex.Decode(dst, src)
+	if err != nil {
+		return "", err
+	}
+	return base64.StdEncoding.EncodeToString(dst), nil
+}
 
 type ConnectionSliceMetadata struct {
 	Total      int `json:"total"`
@@ -98,8 +111,10 @@ func ConnectionFromArraySlice(
 
 	edges := []*Edge{}
 	for _, value := range slice {
+		oid, _ := helpers.GetObjectIDFromValue(value)
+		hid, _ := HexToBase64(helpers.GetHexFromObjectID(oid))
 		edges = append(edges, &Edge{
-			Cursor: mongodb.GetHexFromObjectID(mongodb.GetObjectIDFromValue(value)),
+			Cursor: hid,
 			Node:   value,
 		})
 	}
@@ -232,4 +247,8 @@ func ConnectionDefinitions(config ConnectionConfig) *graphql.Object {
 	}
 
 	return connectionType
+}
+
+func NewIdArgs(id interface{}) *map[string]interface{} {
+	return &map[string]interface{}{"id": id}
 }

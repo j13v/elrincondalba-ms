@@ -21,7 +21,7 @@ var FieldGetArticle = &graphql.Field{
 		},
 	},
 	Resolve: decs.ContextRepoConsumer(func(params graphql.ResolveParams, model mongodb.Repo) (interface{}, error) {
-		article, err := model.Article.FindOne(params.Args)
+		article, err := model.Article.FindOne(&params.Args)
 		return article, err
 	}),
 }
