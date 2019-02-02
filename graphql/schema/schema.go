@@ -14,7 +14,7 @@ var Schema, _ = graphql.NewSchema(
 		}),
 		Mutation: graphql.NewObject(graphql.ObjectConfig{
 			Name:   "Mutation",
-			Fields: mutations.Order,
+			Fields: mutations.Root,
 		}),
 	},
 )
