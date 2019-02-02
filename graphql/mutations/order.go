@@ -11,7 +11,7 @@ import (
 /*
 Mutation Create Order
 */
-var Order = graphql.Fields{
+var MutationOrder = graphql.Fields{
 	"createOrder": &graphql.Field{
 		Type:        types.TypeOrder,
 		Description: "Create new order",

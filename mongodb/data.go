@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 
-	defs "github.com/jal88/elrincondalba-ms/definitions"
 	"github.com/mongodb/mongo-go-driver/mongo"
 )
 
@@ -37,45 +36,45 @@ func InitData(db *mongo.Database) {
 		log.Fatal(err)
 	}
 
-	article1, err := model.Article.Create(&defs.Article{
-		Name:        "MiniFalda",
-		Description: "Chicha morada is a beverage originated in the Andean regions of Perú but is actually consumed at a national level (wiki)",
-		Price:       7.99,
-		Images: []string{
+	article1, err := model.Article.Create(
+		"MiniFalda",
+		"Chicha morada is a beverage originated in the Andean regions of Perú but is actually consumed at a national level (wiki)",
+		7.99,
+		[]string{
 			"607f1f77bcf86cd799439011",
 			"607f1f77bcf86cd799439012"},
-		Category: "Faldas",
-		Rating:   2,
-	})
+		"Faldas",
+		2,
+	)
 
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	article2, err := model.Article.Create(&defs.Article{
-		Name:        "Sandalia",
-		Description: "Chicha morada is a beverage originated in the Andean regions of Perú but is actually consumed at a national level (wiki)",
-		Price:       17.99,
-		Images: []string{
+	article2, err := model.Article.Create(
+		"Sandalia",
+		"Chicha morada is a beverage originated in the Andean regions of Perú but is actually consumed at a national level (wiki)",
+		17.99,
+		[]string{
 			"617f1f77bcf86cd799439011",
 			"617f1f77bcf86cd799439012"},
-		Category: "Zapatos",
-		Rating:   4})
+		"Zapatos",
+		4)
 
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	article3, err := model.Article.Create(&defs.Article{
-		Name:        "Camiseta de tirante",
-		Description: "Chicha morada is a beverage originated in the Andean regions of Perú but is actually consumed at a national level (wiki)",
-		Price:       33.99,
-		Images: []string{
+	article3, err := model.Article.Create(
+		"Camiseta de tirante",
+		"Chicha morada is a beverage originated in the Andean regions of Perú but is actually consumed at a national level (wiki)",
+		33.99,
+		[]string{
 			"637f1f77bcf86cd799439011",
 			"637f1f77bcf86cd799439012",
 			"637f1f77bcf86cd799439013"},
-		Category: "Camisetas",
-		Rating:   3})
+		"Camisetas",
+		3)
 
 	if err != nil {
 		log.Fatal(err)
