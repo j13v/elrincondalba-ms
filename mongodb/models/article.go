@@ -114,3 +114,31 @@ func (model *ModelArticle) GetCategories() ([]interface{}, error) {
 
 	return categories, err
 }
+
+//TODO define filters params
+func (model *ModelArticle) GetMinMaxPrice() (interface{}, error) {
+
+	pipeline := bson.A{
+		bson.M{
+			"$group": bson.M{
+				"_id": nil,
+				"max": bson.M{"$max": "$price"},
+				"min": bson.M{"$min": "$price"},
+			},
+		},
+	}
+	ctx := context.Background()
+	cursor, err := model.collection.Aggregate(ctx, pipeline)
+	if err != nil {
+		log.Fatal(err)
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+	cursor.Next(ctx)
+	data := struct {
+		Min float64 `bson:"min" json:"min"`
+		Max float64 `bson:"max" json:"max"`
+	}{}
+	cursor.Decode(&data)
+	return data, err
+}
