@@ -108,3 +108,9 @@ func (model *ModelArticle) GetCount() (int64, error) {
 	count, err := oprs.GetCount(model.collection, context.Background())
 	return count, err
 }
+
+func (model *ModelArticle) GetCategories() ([]interface{}, error) {
+	categories, err := model.collection.Distinct(context.Background(), "category", bson.D{})
+
+	return categories, err
+}
