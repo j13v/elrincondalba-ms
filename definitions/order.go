@@ -33,14 +33,14 @@ type Order struct {
 	State         int8               `bson:"state" json:"state"`
 	Notes         string             `bson:"notes" json:"notes"`
 	PaymentMethod int8               `bson:"paymentMethod" json:"paymentMethod"`
-	PurchaseRef   string             `bson:"purchaseRef" json:"purchaseRef"`
+	PaymentRef    string             `bson:"paymentRef" json:"paymentRef"`
 	TrackingRef   string             `bson:"trackingRef" json:"trackingRef"`
 	CreatedAt     int32              `bson:"createdAt,omitempty" json:"createdAt"`
 	UpdatedAt     int32              `bson:"updatedAt,omitempty" json:"updatedAt"`
 }
 
-func (order *Order) Purchase(paymentMethod int8, purchaseRef string) error {
-	_, err := PurchaseOrder(order, paymentMethod, purchaseRef)
+func (order *Order) Purchase(paymentMethod int8, paymentRef string) error {
+	_, err := PurchaseOrder(order, paymentMethod, paymentRef)
 	return err
 }
 
@@ -82,13 +82,13 @@ func NewOrder(stock primitive.ObjectID, user primitive.ObjectID, notes string) (
 	return order, nil
 }
 
-func PurchaseOrder(order *Order, paymentMethod int8, purchaseRef string) (*Order, error) {
+func PurchaseOrder(order *Order, paymentMethod int8, paymentRef string) (*Order, error) {
 	if _, err := UpdateStateOrder(order, ORDER_STATUS_PURCHASED); err != nil {
 		return nil, err
 	}
 	// TODO Validate payment methods
 	order.PaymentMethod = paymentMethod
-	order.PurchaseRef = purchaseRef
+	order.PaymentRef = paymentRef
 	return order, nil
 }
 

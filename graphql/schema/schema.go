@@ -16,5 +16,18 @@ var Schema, _ = graphql.NewSchema(
 			Name:   "Mutation",
 			Fields: mutations.Root,
 		}),
+		// Subscription: graphql.NewObject(graphql.ObjectConfig{
+		// 	Name: "Subscription",
+		// 	Fields: graphql.Fields{
+		// 		"articleSubscribe": &graphql.Field{
+		// 			Type: graphql.NewList(types.TypeArticle),
+		// 			Resolve: decorators.ContextRepoConsumer(func(params graphql.ResolveParams, model mongodb.Repo) (interface{}, error) {
+		// 				connArgs := relay.NewConnectionArguments(params.Args)
+		// 				articles, meta, err := model.Article.FindSlice(&params.Args)
+		// 				return utils.ConnectionFromArraySlice(articles, connArgs, meta), err
+		// 			}),
+		// 		},
+		// 	},
+		// }),
 	},
 )
