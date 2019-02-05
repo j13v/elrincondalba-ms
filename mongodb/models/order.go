@@ -120,7 +120,7 @@ func (model *ModelOrder) Purchase(id primitive.ObjectID, paymentMethod int8, pur
 	if err := order.Purchase(paymentMethod, purchaseRef); err != nil {
 		return err
 	}
-	if err := model.sync(order); err != nil {
+	if err := model.Sync(order); err != nil {
 		return err
 	}
 	return nil
@@ -134,7 +134,7 @@ func (model *ModelOrder) Prepare(id primitive.ObjectID) error {
 	if err := order.Prepare(); err != nil {
 		return err
 	}
-	if err := model.sync(order); err != nil {
+	if err := model.Sync(order); err != nil {
 		return err
 	}
 	return nil
@@ -148,7 +148,7 @@ func (model *ModelOrder) Ship(id primitive.ObjectID, trackingRef string) error {
 	if err := order.Ship(trackingRef); err != nil {
 		return err
 	}
-	if err := model.sync(order); err != nil {
+	if err := model.Sync(order); err != nil {
 		return err
 	}
 	return nil
@@ -162,7 +162,7 @@ func (model *ModelOrder) ConfirmReceived(id primitive.ObjectID) error {
 	if err := order.ConfirmReceived(); err != nil {
 		return err
 	}
-	if err := model.sync(order); err != nil {
+	if err := model.Sync(order); err != nil {
 		return err
 	}
 	return nil
@@ -176,7 +176,7 @@ func (model *ModelOrder) Cancel(id primitive.ObjectID) error {
 	if err := order.Cancel(); err != nil {
 		return err
 	}
-	if err := model.sync(order); err != nil {
+	if err := model.Sync(order); err != nil {
 		return err
 	}
 	return nil
@@ -190,7 +190,7 @@ func (model *ModelOrder) UpdateState(id primitive.ObjectID, state int8) error {
 	if err := order.UpdateState(state); err != nil {
 		return err
 	}
-	if err := model.sync(order); err != nil {
+	if err := model.Sync(order); err != nil {
 		return err
 	}
 	return nil
@@ -217,7 +217,7 @@ func (model *ModelOrder) findById(id primitive.ObjectID) (*defs.Order, error) {
 	return &orderStruct, nil
 }
 
-func (model *ModelOrder) sync(order *defs.Order) error {
+func (model *ModelOrder) Sync(order *defs.Order) error {
 	if _, err := model.collection.UpdateOne(
 		context.Background(),
 		bson.M{"_id": order.ID},

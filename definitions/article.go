@@ -20,6 +20,7 @@ type Article struct {
 	Rating      int8               `bson:"rating" json:"rating"`
 	CreatedAt   int32              `bson:"createdAt,omitempty" json:"createdAt"`
 	UpdatedAt   int32              `bson:"updatedAt,omitempty" json:"updatedAt"`
+	Disabled    bool               `bson:"disabled"`
 }
 
 func NewArticle(name string, description string, price float64, images []string, category string, rating int8) (*Article, error) {

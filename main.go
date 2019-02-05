@@ -4,19 +4,17 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"log"
+	"math/rand"
 	"net/http"
-	"sync"
 	"time"
 
-	"github.com/gorilla/websocket"
+	"github.com/functionalfoundry/graphqlws"
 	"github.com/graphql-go/graphql"
 	"github.com/jal88/elrincondalba-ms/definitions"
 	decs "github.com/jal88/elrincondalba-ms/graphql/decorators"
 	"github.com/jal88/elrincondalba-ms/graphql/schema"
-	"github.com/jal88/elrincondalba-ms/graphql/types"
 	"github.com/jal88/elrincondalba-ms/mongodb"
-	"github.com/mongodb/mongo-go-driver/bson/primitive"
+	"github.com/jal88/elrincondalba-ms/pubsub"
 	"github.com/mongodb/mongo-go-driver/mongo"
 )
 
@@ -48,26 +46,6 @@ type BodyQueryMessage struct {
 	Variables map[string]interface{} `json:"variables"`
 }
 
-type Post struct {
-	ID    int `json:"id"`
-	Likes int `json:"count"`
-}
-
-type ConnectionACKMessage struct {
-	OperationID string `json:"id,omitempty"`
-	Type        string `json:"type"`
-	Payload     struct {
-		Query string `json:"query"`
-	} `json:"payload,omitempty"`
-}
-
-type Subscriber struct {
-	ID            int
-	Conn          *websocket.Conn
-	RequestString string
-	OperationID   string
-}
-
 func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
@@ -80,196 +58,96 @@ func main() {
 	db.Drop(ctx)
 	// Primary data initialization
 	mongodb.InitData(db)
+	repo := mongodb.CreateRepo(db)
 
-	var upgrader = websocket.Upgrader{
-		ReadBufferSize:  1024,
-		WriteBufferSize: 1024,
-		CheckOrigin: func(r *http.Request) bool {
-			return true
-		},
-		Subprotocols: []string{"graphql-ws"},
-	}
-	var articles = []*definitions.Article{
-		&definitions.Article{
-			ID:          primitive.ObjectID{},
-			Rating:      0,
-			Name:        "Falda burdeos",
-			Description: "Chicha morada is a beverage originated in the Andean regions of Perú but is actually consumed at a national level (wiki)",
-			Price:       33.99,
-			Images: []string{
-				"637f1f77bcf86cd799439011",
-				"637f1f77bcf86cd799439012",
-				"637f1f77bcf86cd799439013"},
-			Category: "Faldas",
-		},
-		&definitions.Article{
-			ID:          primitive.ObjectID{},
-			Rating:      0,
-			Name:        "Camiseta de tirante",
-			Description: "Chicha morada is a beverage originated in the Andean regions of Perú but is actually consumed at a national level (wiki)",
-			Price:       13.99,
-			Images: []string{
-				"637f1f77bcf86cd799439011",
-				"637f1f77bcf86cd799439012",
-				"637f1f77bcf86cd799439013"},
-			Category: "Camisetas",
-		},
-	}
-	var subscribers sync.Map
+	// Create a subscription manager
+	subscriptionManager := graphqlws.NewSubscriptionManager(&schema.Schema)
+	// Create a WebSocket/HTTP handler
+	graphqlwsHandler := pubsub.NewHandlerFunc(graphqlws.HandlerConfig{
+		// Wire up the GraphqL WebSocket handler with the subscription manager
+		SubscriptionManager: subscriptionManager,
 
-	schm, err := graphql.NewSchema(graphql.SchemaConfig{
-		Query: graphql.NewObject(graphql.ObjectConfig{
-			Name: "Query",
-			Fields: graphql.Fields{
-				"articles": &graphql.Field{
-					Type: graphql.NewList(types.TypeArticle),
-					Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-						return articles, nil
-					},
-				},
-			},
-		}),
-		Subscription: graphql.NewObject(graphql.ObjectConfig{
-			Name: "Subscription",
-			Fields: graphql.Fields{
-				"postLikesSubscribe": &graphql.Field{
-					Args: graphql.FieldConfigArgument{
-						"id": &graphql.ArgumentConfig{
-							Type: graphql.String,
-						},
-					},
-					Type: graphql.NewList(types.TypeArticle),
-					Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-						return articles, nil
-					},
-				},
-			},
-		}),
+		// Optional: Add a hook to resolve auth tokens into users that are
+		// then stored on the GraphQL WS connections
+		Authenticate: func(authToken string) (interface{}, error) {
+			// This is just a dumb example
+			return "Joe", nil
+		},
 	})
-	if err != nil {
-		log.Fatal(err)
-	}
 
 	http.Handle("/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Write(page)
 	}))
 
-	http.HandleFunc("/subscriptions", func(w http.ResponseWriter, r *http.Request) {
-		conn, err := upgrader.Upgrade(w, r, nil)
-		if err != nil {
-			log.Printf("failed to do websocket upgrade: %v", err)
-			return
-		}
-		connectionACK, err := json.Marshal(map[string]string{
-			"type": "connection_ack",
-		})
-		if err != nil {
-			log.Printf("failed to marshal ws connection ack: %v", err)
-		}
-		if err := conn.WriteMessage(websocket.TextMessage, connectionACK); err != nil {
-			log.Printf("failed to write to ws connection: %v", err)
-			return
-		}
-		go func() {
-			for {
-				_, p, err := conn.ReadMessage()
-				if websocket.IsCloseError(err, websocket.CloseGoingAway) {
-					return
-				}
-				if err != nil {
-					log.Println("failed to read websocket message: %v", err)
-					return
-				}
-				var msg ConnectionACKMessage
-				if err := json.Unmarshal(p, &msg); err != nil {
-					log.Printf("failed to unmarshal: %v", err)
-					return
-				}
-				if msg.Type == "start" {
-					length := 0
-					subscribers.Range(func(key, value interface{}) bool {
-						length++
-						return true
-					})
-					var subscriber = Subscriber{
-						ID:            length + 1,
-						Conn:          conn,
-						RequestString: msg.Payload.Query,
-						OperationID:   msg.OperationID,
-					}
-					subscribers.Store(subscriber.ID, &subscriber)
-				}
-			}
-		}()
-	})
+	subscriptions := subscriptionManager.Subscriptions()
+
 	go func() {
 		for {
-			time.Sleep(5 * time.Second)
-			for _, post := range articles {
-				post.Price = post.Price + 0.01
-			}
-			subscribers.Range(func(key, value interface{}) bool {
-				subscriber, ok := value.(*Subscriber)
-				if !ok {
-					return true
-				}
-				payload := graphql.Do(graphql.Params{
-					Schema:        schm,
-					RequestString: subscriber.RequestString,
-				})
-				message, err := json.Marshal(map[string]interface{}{
-					"type":    "data",
-					"id":      subscriber.OperationID,
-					"payload": payload,
-				})
-				if err != nil {
-					log.Printf("failed to marshal message: %v", err)
-					return true
-				}
-				if err := subscriber.Conn.WriteMessage(websocket.TextMessage, message); err != nil {
-					if err == websocket.ErrCloseSent {
-						subscribers.Delete(key)
-						return true
-					}
-					log.Printf("failed to write to ws connection: %v", err)
-					return true
-				}
-				return true
+			time.Sleep(2 * time.Second)
+			result, _ := repo.Article.FindOne(&map[string]interface{}{
+				"name": "MiniFalda",
 			})
+			article := result.(definitions.Article)
+			article.Rating = (article.Rating + 1) % 5
+			article.Price = rand.Float64() * 100
+			repo.Article.Sync(&article)
+
+			for conn, subs := range subscriptions {
+				conn.ID()
+				conn.User()
+				for _, subscription := range subs {
+					// Prepare an execution context for running the query
+					ctx := context.Background()
+					ctx = decs.ContextPubSubApply(article)(ctx)
+					// Re-execute the subscription query
+					params := graphql.Params{
+						Schema:         schema.Schema, // The GraphQL schema
+						RequestString:  subscription.Query,
+						VariableValues: subscription.Variables,
+						OperationName:  subscription.OperationName,
+						Context:        ctx,
+					}
+					result := graphql.Do(params)
+					// Send query results back to the subscriber at any point
+					data := graphqlws.DataMessagePayload{
+						// Data can be anything (interface{})
+						Data: result.Data,
+						// Errors is optional ([]error)
+						Errors: graphqlws.ErrorsFromGraphQLErrors(result.Errors),
+					}
+					subscription.SendData(&data)
+				}
+			}
 		}
 	}()
 
 	http.HandleFunc("/graphql", func(w http.ResponseWriter, r *http.Request) {
-		setupResponse(&w, r)
-		if (*r).Method == "OPTIONS" {
-			return
+
+		if r.Header["Connection"][0] == "Upgrade" {
+			graphqlwsHandler(w, r)
+		} else {
+			setupResponse(&w, r)
+			if (*r).Method == "OPTIONS" {
+				return
+			}
+			decoder := json.NewDecoder(r.Body)
+			var t BodyQueryMessage
+			err := decoder.Decode(&t)
+			if err != nil {
+				panic(err)
+			}
+
+			ctx := context.Background()
+			ctx = decs.ContextRepoApply(repo)(ctx)
+			// ctx = decs.DecoratorContextUserApply(u)(ctx)
+
+			result := executeQuery(
+				schema.Schema,
+				t.Query,
+				t.Variables,
+				ctx)
+			json.NewEncoder(w).Encode(result)
 		}
-		decoder := json.NewDecoder(r.Body)
-		var t BodyQueryMessage
-		err := decoder.Decode(&t)
-		if err != nil {
-			panic(err)
-		}
-		repo := mongodb.CreateRepo(db)
-
-		// u := struct{
-		// 	GetName()
-		// 	GetScopes: func() []string {
-		// 		return []string{"admin"}
-		// 	},
-		// }
-
-		ctx := context.Background()
-		ctx = decs.ContextRepoApply(repo)(ctx)
-		// ctx = decs.DecoratorContextUserApply(u)(ctx)
-
-		result := executeQuery(
-			schema.Schema,
-			t.Query,
-			t.Variables,
-			ctx)
-		json.NewEncoder(w).Encode(result)
-
 	})
 
 	fmt.Println("Server is running on port 8080")

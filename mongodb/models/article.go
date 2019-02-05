@@ -109,6 +109,22 @@ func (model *ModelArticle) GetCount() (int64, error) {
 	return count, err
 }
 
+func (model *ModelArticle) Sync(article *defs.Article) error {
+	if _, err := model.collection.UpdateOne(
+		context.Background(),
+		bson.M{"_id": article.ID},
+		bson.M{
+			"$set": article,
+		}); err != nil {
+		return err
+	}
+
+	cursor, err := oprs.FindById(model.collection, context.Background(), article.ID)
+	cursor.Decode(article)
+
+	return err
+}
+
 func (model *ModelArticle) ListCategories() ([]interface{}, error) {
 	categories, err := model.collection.Distinct(context.Background(), "category", bson.D{})
 
