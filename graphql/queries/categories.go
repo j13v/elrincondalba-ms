@@ -6,5 +6,5 @@ import (
 )
 
 var QueryCategories = graphql.Fields{
-	"getCategories": types.FieldGetCategories,
+	"listCategories": types.FieldListCategories,
 }

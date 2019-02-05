@@ -6,12 +6,12 @@ import (
 	"github.com/jal88/elrincondalba-ms/mongodb"
 )
 
-var FieldListCategories = &graphql.Field{
+var FieldListSizes = &graphql.Field{
 	Type:        graphql.NewList(graphql.String),
-	Description: "List categories",
+	Description: "List the sizes",
 
 	Resolve: decs.ContextRepoConsumer(func(params graphql.ResolveParams, repo mongodb.Repo) (interface{}, error) {
-		categories, err := repo.Article.ListCategories()
-		return categories, err
+		sizes, err := repo.Stock.ListSizes()
+		return sizes, err
 	}),
 }

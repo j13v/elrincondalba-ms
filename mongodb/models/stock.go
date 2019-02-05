@@ -153,6 +153,12 @@ func (model *ModelStock) GetCount() (int64, error) {
 	return count, err
 }
 
+func (model *ModelStock) ListSizes() ([]interface{}, error) {
+	sizes, err := model.collection.Distinct(context.Background(), "size", bson.D{})
+
+	return sizes, err
+}
+
 //
 // func (model *ModelStock) FindByStock(id string) ([]interface{}, error) {
 // 	article := defs.Stock{}

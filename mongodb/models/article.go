@@ -109,14 +109,14 @@ func (model *ModelArticle) GetCount() (int64, error) {
 	return count, err
 }
 
-func (model *ModelArticle) GetCategories() ([]interface{}, error) {
+func (model *ModelArticle) ListCategories() ([]interface{}, error) {
 	categories, err := model.collection.Distinct(context.Background(), "category", bson.D{})
 
 	return categories, err
 }
 
 //TODO define filters params
-func (model *ModelArticle) GetMinMaxPrice() (interface{}, error) {
+func (model *ModelArticle) GetRangePrice() (interface{}, error) {
 
 	pipeline := bson.A{
 		bson.M{
