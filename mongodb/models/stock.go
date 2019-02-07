@@ -68,12 +68,6 @@ func (model *ModelStock) FindById(id interface{}) (interface{}, error) {
 	return stock, err
 }
 
-type StockArticle struct {
-	Refs  []primitive.ObjectID `bson:"refs,omitempty" json:"refs,omitempty"`
-	Size  string               `bson:"size" json:"size"`
-	Count int32                `bson:"count" json:"count"`
-}
-
 func (model *ModelStock) FindByArticle(article interface{}) (interface{}, error) {
 	pipeline := bson.A{
 		bson.M{
@@ -127,9 +121,9 @@ func (model *ModelStock) FindByArticle(article interface{}) (interface{}, error)
 		return nil, err
 	}
 	defer cursor.Close(ctx)
-	data := []StockArticle{}
+	data := []defs.StockArticle{}
 	for cursor.Next(ctx) {
-		stock := &StockArticle{}
+		stock := &defs.StockArticle{}
 		p := bson.M{}
 		if err = cursor.Decode(&p); err != nil {
 			log.Fatal(err)
@@ -153,7 +147,7 @@ func (model *ModelStock) GetCount() (int64, error) {
 	return count, err
 }
 
-func (model *ModelStock) ListSizes() ([]interface{}, error) {
+func (model *ModelStock) GetSizes() ([]interface{}, error) {
 	sizes, err := model.collection.Distinct(context.Background(), "size", bson.D{})
 
 	return sizes, err

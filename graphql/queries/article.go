@@ -7,7 +7,7 @@ import (
 
 var QueryArticle = graphql.Fields{
 	"getArticle":           types.FieldGetArticle,
-	"getArticleRangePrice": types.FieldArticleRangePrice,
+	"getArticlePriceRange": types.FieldArticlePriceRange,
 	"listArticles":         types.FieldListArticles,
 	"listSizes":            types.FieldListSizes,
 }

@@ -100,15 +100,6 @@ func (model *ModelArticle) UpdateArticle(id primitive.ObjectID, name string, des
 	return nil
 }
 
-// func (model *ModelArticle) SetStock(id sring, size string, count int) error {
-//
-// }
-
-func (model *ModelArticle) GetCount() (int64, error) {
-	count, err := oprs.GetCount(model.collection, context.Background())
-	return count, err
-}
-
 func (model *ModelArticle) Sync(article *defs.Article) error {
 	if _, err := model.collection.UpdateOne(
 		context.Background(),
@@ -125,14 +116,18 @@ func (model *ModelArticle) Sync(article *defs.Article) error {
 	return err
 }
 
-func (model *ModelArticle) ListCategories() ([]interface{}, error) {
+func (model *ModelArticle) GetCount() (int64, error) {
+	count, err := oprs.GetCount(model.collection, context.Background())
+	return count, err
+}
+
+func (model *ModelArticle) GetCategories() ([]interface{}, error) {
 	categories, err := model.collection.Distinct(context.Background(), "category", bson.D{})
 
 	return categories, err
 }
 
-//TODO define filters params
-func (model *ModelArticle) GetRangePrice() (interface{}, error) {
+func (model *ModelArticle) GetPriceRange() (interface{}, error) {
 
 	pipeline := bson.A{
 		bson.M{
@@ -152,9 +147,9 @@ func (model *ModelArticle) GetRangePrice() (interface{}, error) {
 	defer cursor.Close(ctx)
 	cursor.Next(ctx)
 	data := struct {
-		Min float64 `bson:"min" json:"min"`
-		Max float64 `bson:"max" json:"max"`
+		Min float64 `bson:"min"`
+		Max float64 `bson:"max"`
 	}{}
 	cursor.Decode(&data)
-	return data, err
+	return []float64{data.Min, data.Max}, err
 }

@@ -7,30 +7,6 @@ import (
 	"github.com/jal88/elrincondalba-ms/mongodb"
 )
 
-var TypeRangePrice = graphql.NewObject(
-	graphql.ObjectConfig{
-		Name: "MinMaxPrice",
-		Fields: graphql.Fields{
-			"min": &graphql.Field{
-				Type: graphql.Float,
-			},
-			"max": &graphql.Field{
-				Type: graphql.Float,
-			},
-		},
-	},
-)
-
-var FieldArticleRangePrice = &graphql.Field{
-	Type:        TypeRangePrice,
-	Description: "Get min max price",
-
-	Resolve: decs.ContextRepoConsumer(func(params graphql.ResolveParams, repo mongodb.Repo) (interface{}, error) {
-		rangePrice, err := repo.Article.GetRangePrice()
-		return rangePrice, err
-	}),
-}
-
 /*
 FieldArticle GraphQL field
 */
@@ -46,24 +22,6 @@ var FieldArticle = graphql.Field{
 		return nil, nil
 	}),
 }
-
-var TypeArticleStock = graphql.NewObject(
-	graphql.ObjectConfig{
-		Name:        "ArticleStock",
-		Description: "ArticleStock",
-		Fields: graphql.Fields{
-			"size": &graphql.Field{
-				Type: graphql.String,
-			},
-			"count": &graphql.Field{
-				Type: graphql.Int,
-			},
-			"refs": &graphql.Field{
-				Type: graphql.NewList(ObjectID),
-			},
-		},
-	},
-)
 
 /*
 TypeArticle

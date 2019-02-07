@@ -6,12 +6,11 @@ import (
 	"github.com/jal88/elrincondalba-ms/mongodb"
 )
 
-var FieldListCategories = &graphql.Field{
-	Type:        graphql.NewList(graphql.String),
-	Description: "List categories",
-
+var FieldArticlePriceRange = &graphql.Field{
+	Type:        graphql.NewList(graphql.Float),
+	Description: "Get min max price",
 	Resolve: decs.ContextRepoConsumer(func(params graphql.ResolveParams, repo mongodb.Repo) (interface{}, error) {
-		categories, err := repo.Article.ListCategories()
-		return categories, err
+		rangePrice, err := repo.Article.GetPriceRange()
+		return rangePrice, err
 	}),
 }
