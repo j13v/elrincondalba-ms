@@ -22,6 +22,9 @@ func NewModelArticle(db *mongo.Database) *ModelArticle {
 
 func (model *ModelArticle) Create(name string, description string, price float64, images []string, category string, rating int8) (*defs.Article, error) {
 	article, err := defs.NewArticle(name, description, price, images, category, rating)
+	if err != nil {
+		return nil, err
+	}
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	val, err := bson.Marshal(article)

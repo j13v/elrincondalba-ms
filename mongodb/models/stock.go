@@ -18,10 +18,14 @@ type ModelStock struct {
 }
 
 func NewModelStock(db *mongo.Database, modelArticle *ModelArticle) *ModelStock {
-	return &ModelStock{
+	model := &ModelStock{
 		collection: db.Collection("stock"),
 		article:    modelArticle,
 	}
+
+	model.ensureAvailableStockView()
+
+	return model
 }
 
 func (model *ModelStock) Create(article primitive.ObjectID, size string) (*defs.Stock, error) {
@@ -69,53 +73,9 @@ func (model *ModelStock) FindById(id interface{}) (interface{}, error) {
 }
 
 func (model *ModelStock) FindByArticle(article interface{}) (interface{}, error) {
-	pipeline := bson.A{
-		bson.M{
-			"$match": bson.M{
-				"article": article.(primitive.ObjectID),
-			},
-		},
-		bson.M{
-			"$lookup": bson.M{
-				"from":         "order",
-				"localField":   "_id",
-				"foreignField": "stock",
-				"as":           "order",
-			},
-		},
-		bson.M{
-			"$unwind": bson.M{
-				"path": "$order",
-				"preserveNullAndEmptyArrays": true,
-			},
-		},
-		bson.M{
-			"$match": bson.M{
-				"$or": bson.A{
-					bson.M{"order": bson.M{"$exists": false}},
-					bson.M{"order.state": bson.M{"$eq": defs.ORDER_STATUS_CANCELLED}},
-				},
-			},
-		},
-		bson.M{
-			"$group": bson.M{
-				"_id": bson.M{
-					"article": "$article",
-					"size":    "$size",
-				},
-				"refs":  bson.M{"$push": "$_id"},
-				"count": bson.M{"$sum": 1},
-			},
-		},
-		bson.M{
-			"$sort": bson.M{
-				"_id.article": 1,
-				"_id.size":    1,
-			},
-		},
-	}
+	collection := model.collection.Database().Collection("availableStock")
 	ctx := context.Background()
-	cursor, err := model.collection.Aggregate(ctx, pipeline)
+	cursor, err := collection.Find(ctx, bson.M{"article": article.(primitive.ObjectID)})
 	if err != nil {
 		log.Fatal(err)
 		return nil, err
@@ -134,7 +94,7 @@ func (model *ModelStock) FindByArticle(article interface{}) (interface{}, error)
 			stock.Refs = append(stock.Refs, item.(primitive.ObjectID))
 		}
 
-		stock.Size = p["_id"].(bson.M)["size"].(string)
+		stock.Size = p["size"].(string)
 		stock.Count = p["count"].(int32)
 		data = append(data, *stock)
 	}
@@ -149,10 +109,112 @@ func (model *ModelStock) GetCount() (int64, error) {
 
 func (model *ModelStock) GetSizes() ([]interface{}, error) {
 	sizes, err := model.collection.Distinct(context.Background(), "size", bson.D{})
-
 	return sizes, err
 }
 
+//
+// func (model *ModelStock) GetAvailableStockByArticle(article interface{}) ([]interface{}, error) {
+// 	// article.(primitive.ObjectID)
+// 	return nil, nil
+// }
+
+// func (model *ModelStock) GetAvailableStock() ([]interface{}, error) {
+// 	model.collection.Database().Collection("availableStock").Find(ctx, filter)
+// 	return nil, nil
+// }
+
+func (model *ModelStock) FindSlice(args *map[string]interface{}) ([]interface{}, *oprs.FindSliceMetadata, error) {
+	collection := model.collection.Database().Collection("availableStock")
+	data, meta, err := oprs.FindSlice(collection, context.Background(), args)
+	if err != nil {
+		log.Fatal(err)
+		return nil, meta, err
+	}
+	articles := []interface{}{}
+	for _, v := range data {
+		article := bson.D{}
+		bson.Unmarshal(v, &article)
+		articles = append(articles, article)
+	}
+
+	return articles, meta, nil
+}
+
+// VIEWS
+
+func (model *ModelStock) ensureAvailableStockView() {
+	db := model.collection.Database()
+	db.RunCommand(context.Background(), bson.M{
+		"create": "availableStock",
+		"viewOn": model.collection.Name(),
+		"pipeline": bson.A{
+			bson.M{
+				"$lookup": bson.M{
+					"from":         "order",
+					"localField":   "_id",
+					"foreignField": "stock",
+					"as":           "order",
+				},
+			},
+			bson.M{
+				"$unwind": bson.M{
+					"path": "$order",
+					"preserveNullAndEmptyArrays": true,
+				},
+			},
+			bson.M{
+				"$match": bson.M{
+					"$or": bson.A{
+						bson.M{"order": bson.M{"$exists": false}},
+						bson.M{"order.state": bson.M{"$eq": defs.ORDER_STATUS_CANCELLED}},
+					},
+				},
+			},
+			bson.M{
+				"$group": bson.M{
+					"_id": bson.M{
+						"article": "$article",
+						"size":    "$size",
+					},
+					"refs":  bson.M{"$push": "$_id"},
+					"count": bson.M{"$sum": 1},
+				},
+			},
+			bson.M{
+				"$project": bson.M{
+					"article": "$_id.article",
+					"size":    "$_id.size",
+					"_id":     0,
+					"refs":    1,
+					"count":   1,
+				},
+			},
+			bson.M{
+				"$sort": bson.M{
+					"article": 1,
+					"size":    1,
+				},
+			},
+		},
+	})
+}
+
+// bson.M{
+// 	"$group": bson.M{
+// 		"_id": bson.M{
+// 			"article": "$article",
+// 			"size":    "$size",
+// 		},
+// 		"refs":  bson.M{"$push": "$_id"},
+// 		"count": bson.M{"$sum": 1},
+// 	},
+// },
+// bson.M{
+// 	"$sort": bson.M{
+// 		"_id.article": 1,
+// 		"_id.size":    1,
+// 	},
+// },
 //
 // func (model *ModelStock) FindByStock(id string) ([]interface{}, error) {
 // 	article := defs.Stock{}

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"math/rand"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/functionalfoundry/graphqlws"
@@ -13,9 +14,12 @@ import (
 	"github.com/jal88/elrincondalba-ms/definitions"
 	decs "github.com/jal88/elrincondalba-ms/graphql/decorators"
 	"github.com/jal88/elrincondalba-ms/graphql/schema"
+	"github.com/jal88/elrincondalba-ms/logger"
 	"github.com/jal88/elrincondalba-ms/mongodb"
 	"github.com/jal88/elrincondalba-ms/pubsub"
+	"github.com/mongodb/mongo-go-driver/bson"
 	"github.com/mongodb/mongo-go-driver/mongo"
+	"github.com/sirupsen/logrus"
 )
 
 func executeQuery(
@@ -47,6 +51,7 @@ type BodyQueryMessage struct {
 }
 
 func main() {
+	logger := logger.NewLogger("server")
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	client, err := mongo.Connect(ctx, "mongodb://localhost:27017")
@@ -55,9 +60,10 @@ func main() {
 	}
 
 	db := client.Database("elrincondalba")
-	db.Drop(ctx)
 	// Primary data initialization
-	mongodb.InitData(db)
+	if os.Getenv("INIT_DATABASE") != "" {
+		mongodb.InitData(db)
+	}
 	repo := mongodb.CreateRepo(db)
 
 	// Create a subscription manager
@@ -84,10 +90,11 @@ func main() {
 	go func() {
 		for {
 			time.Sleep(2 * time.Second)
-			result, _ := repo.Article.FindOne(&map[string]interface{}{
-				"name": "MiniFalda",
+			result := db.Collection("article").FindOne(context.Background(), bson.M{
+				"rating": bson.M{"$gte": " Math.random()"},
 			})
-			article := result.(definitions.Article)
+			article := definitions.Article{}
+			result.Decode(&article)
 			article.Rating = (article.Rating + 1) % 5
 			article.Price = rand.Float64() * 100
 			repo.Article.Sync(&article)
@@ -150,7 +157,10 @@ func main() {
 		}
 	})
 
-	fmt.Println("Server is running on port 8080")
+	logger.WithFields(logrus.Fields{
+		"port": "8080",
+		"host": "0.0.0.0",
+	}).Info("Server is running")
 	http.ListenAndServe(":8080", nil)
 }
 

@@ -11,7 +11,6 @@ User definition
 */
 type User struct {
 	ID      primitive.ObjectID `bson:"_id,omitempty" json:"id,omitempty"`
-	DNI     string             `bson:"dni" json:"dni"`
 	Name    string             `bson:"name" json:"name"`
 	Surname string             `bson:"surname" json:"surname"`
 	Email   string             `bson:"email" json:"email"`
@@ -19,12 +18,8 @@ type User struct {
 	Address string             `bson:"address" json:"address"`
 }
 
-func NewUser(dni string, name string, surname string, email string, phone string, address string) (*User, error) {
+func NewUser(name string, surname string, email string, phone string, address string) (*User, error) {
 	user := &User{}
-	if dni == "" {
-		return nil, errors.New("Empty dni in user creation")
-	}
-	user.DNI = dni
 	if name == "" {
 		return nil, errors.New("Empty name in user creation")
 	}

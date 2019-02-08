@@ -13,5 +13,5 @@ func NewLogger(prefix string) *log.Entry {
 	logger := log.New()
 	logger.Formatter = new(prefixed.TextFormatter)
 	logger.Level = log.GetLevel()
-	return logger.WithField("prefix", fmt.Sprintf("graphqlws/%s", prefix))
+	return logger.WithField("prefix", fmt.Sprintf("elrincondalba/%s", prefix))
 }

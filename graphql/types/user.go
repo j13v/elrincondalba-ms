@@ -31,9 +31,6 @@ var TypeUser = graphql.NewObject(
 		Name: "User",
 		Fields: graphql.Fields{
 			"id": &FieldID,
-			"dni": &graphql.Field{
-				Type: graphql.String,
-			},
 			"name": &graphql.Field{
 				Type: graphql.String,
 			},

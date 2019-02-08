@@ -19,9 +19,6 @@ var MutationOrder = graphql.Fields{
 			"stock": &graphql.ArgumentConfig{
 				Type: graphql.NewNonNull(types.ObjectID),
 			},
-			"dni": &graphql.ArgumentConfig{
-				Type: graphql.NewNonNull(graphql.String),
-			},
 			"name": &graphql.ArgumentConfig{
 				Type: graphql.NewNonNull(graphql.String),
 			},
@@ -43,7 +40,6 @@ var MutationOrder = graphql.Fields{
 		},
 		Resolve: decs.ContextRepoConsumer(func(params graphql.ResolveParams, repo mongodb.Repo) (interface{}, error) {
 			user, err := repo.User.Create(
-				params.Args["dni"].(string),
 				params.Args["name"].(string),
 				params.Args["surname"].(string),
 				params.Args["email"].(string),

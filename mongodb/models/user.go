@@ -19,8 +19,8 @@ func NewModelUser(db *mongo.Database) *ModelUser {
 	return &ModelUser{collection: db.Collection("user")}
 }
 
-func (model *ModelUser) Create(dni string, name string, surname string, email string, phone string, address string) (*defs.User, error) {
-	user, err := defs.NewUser(dni, name, surname, email, phone, address)
+func (model *ModelUser) Create(name string, surname string, email string, phone string, address string) (*defs.User, error) {
+	user, err := defs.NewUser(name, surname, email, phone, address)
 	if err != nil {
 		return nil, err
 	}

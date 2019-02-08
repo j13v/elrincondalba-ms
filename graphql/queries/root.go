@@ -4,4 +4,4 @@ import (
 	"github.com/jal88/elrincondalba-ms/util"
 )
 
-var Root = util.CombineFields(QueryArticle, QueryOrder, QueryCategories)
+var Root = util.CombineFields(QueryArticle, QueryOrder, QueryCategories, QueryCatalog)
