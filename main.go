@@ -3,25 +3,23 @@ package main
 import (
 	"context"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"os"
 	"time"
 
+	"github.com/gorilla/mux"
 	"github.com/jal88/elrincondalba-ms/graphql"
 	decs "github.com/jal88/elrincondalba-ms/graphql/decorators"
 	"github.com/jal88/elrincondalba-ms/graphql/schema"
 	"github.com/jal88/elrincondalba-ms/logger"
 	"github.com/jal88/elrincondalba-ms/mongodb"
+	"github.com/mongodb/mongo-go-driver/bson/primitive"
 	"github.com/mongodb/mongo-go-driver/mongo"
+	"github.com/mongodb/mongo-go-driver/mongo/gridfs"
 	"github.com/sirupsen/logrus"
 )
-
-func setupResponse(w *http.ResponseWriter, req *http.Request) {
-	(*w).Header().Set("Access-Control-Allow-Origin", "*")
-	(*w).Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
-	(*w).Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
-}
 
 func main() {
 	logger := logger.NewLogger("server")
@@ -35,22 +33,46 @@ func main() {
 	httpPort := 8080
 
 	db := client.Database("elrincondalba")
+	bucket, err := gridfs.NewBucket(db)
+	if err != nil {
+		panic(err)
+	}
 	// Primary data initialization
 	if os.Getenv("INIT_DATABASE") != "" {
 		mongodb.InitData(db)
 	}
 	repo := mongodb.CreateRepo(db)
-	http.Handle("/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Write(page)
-	}))
 
 	ctx = context.Background()
 	ctx = decs.ContextRepoApply(repo)(ctx)
 
-	http.HandleFunc("/graphql", graphql.NewHandlerFunc(graphql.HandlerConfig{
+	rtr := mux.NewRouter()
+	rtr.HandleFunc("/images/{image:[a-z0-9]+}", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		params := mux.Vars(r)
+		image := params["image"]
+		oid, err := primitive.ObjectIDFromHex(image)
+		if err != nil {
+			panic(err)
+		}
+		downstream, err := bucket.OpenDownloadStream(oid)
+		if err != nil {
+			panic(err)
+		}
+
+		io.Copy(w, downstream)
+		defer downstream.Close()
+	}))
+
+	rtr.HandleFunc("/graphql", graphql.NewHandlerFunc(graphql.HandlerConfig{
 		Schema:  &schema.Schema,
 		Context: ctx,
 	}))
+
+	rtr.HandleFunc("/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Write(page)
+	}))
+
+	http.Handle("/", rtr)
 
 	logger.WithFields(logrus.Fields{
 		"port": "8080",
@@ -58,6 +80,7 @@ func main() {
 	}).Info("Server is running")
 
 	err = http.ListenAndServe(fmt.Sprintf(":%d", httpPort), logRequest(http.DefaultServeMux, logger))
+
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -300,3 +323,19 @@ var page = []byte(`
 // 		json.NewEncoder(w).Encode(result)
 // 	}
 // })
+
+// http.Handle("/images/{image:[a-z0-9]+}", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+// 	fmt.Printf("%v\n", r.URL)
+// 	params := mux.Vars(r)
+// 	name := params["name"]
+// 	w.Write([]byte("Hello " + name))
+// }))
+//
+// http.HandleFunc("/graphql", graphql.NewHandlerFunc(graphql.HandlerConfig{
+// 	Schema:  &schema.Schema,
+// 	Context: ctx,
+// }))
+//
+// http.Handle("/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+// 	w.Write(page)
+// }))

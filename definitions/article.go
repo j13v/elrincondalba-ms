@@ -40,6 +40,7 @@ func NewArticle(name string, description string, price float64, images []primiti
 	if len(images) == 0 {
 		return nil, errors.New("Empty images in article creation")
 	}
+	article.Images = images
 	if category == "" {
 		return nil, errors.New("Empty category in article creation")
 	}

@@ -2,6 +2,7 @@ package models
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"time"
 
@@ -10,6 +11,7 @@ import (
 	"github.com/mongodb/mongo-go-driver/bson"
 	"github.com/mongodb/mongo-go-driver/bson/primitive"
 	"github.com/mongodb/mongo-go-driver/mongo"
+	"github.com/mongodb/mongo-go-driver/x/bsonx"
 )
 
 type ModelStock struct {
@@ -23,6 +25,7 @@ func NewModelStock(db *mongo.Database, modelArticle *ModelArticle) *ModelStock {
 		article:    modelArticle,
 	}
 
+	model.ensureIndex()
 	model.ensureAvailableStockView()
 
 	return model
@@ -140,6 +143,15 @@ func (model *ModelStock) FindSlice(args *map[string]interface{}) ([]interface{},
 	return articles, meta, nil
 }
 
+func (model *ModelStock) ensureIndex() error {
+	indexView := model.collection.Indexes()
+	_, err := indexView.CreateOne(context.Background(), mongo.IndexModel{
+		Keys: bson.M{"article": bsonx.Int32(1), "order": bsonx.Int32(1)},
+	})
+	fmt.Printf("%v\n", err)
+	return err
+}
+
 // VIEWS
 
 func (model *ModelStock) ensureAvailableStockView() {
@@ -187,12 +199,6 @@ func (model *ModelStock) ensureAvailableStockView() {
 					"_id":     0,
 					"refs":    1,
 					"count":   1,
-				},
-			},
-			bson.M{
-				"$sort": bson.M{
-					"article": 1,
-					"size":    1,
 				},
 			},
 		},

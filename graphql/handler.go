@@ -3,7 +3,6 @@ package graphql
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -15,6 +14,7 @@ import (
 	"github.com/graphql-go/graphql"
 	"github.com/graphql-go/graphql/gqlerrors"
 	defs "github.com/jal88/elrincondalba-ms/definitions"
+	"github.com/jal88/elrincondalba-ms/pubsub"
 )
 
 const (
@@ -160,10 +160,10 @@ func NewRequestOptions(r *http.Request) *RequestOptions {
 	contentTypeStr := r.Header.Get("Content-Type")
 	contentTypeTokens := strings.Split(contentTypeStr, ";")
 	contentType := contentTypeTokens[0]
-	fmt.Printf("%v\n", contentType)
 	switch contentType {
 	case ContentTypeMultiplartFormData:
 		// Parse multipart form
+		// TODO Get MaxBodySize from config
 		if err := r.ParseMultipartForm(1024); err != nil {
 			panic(err)
 		}
@@ -204,16 +204,7 @@ func NewRequestOptions(r *http.Request) *RequestOptions {
 				set(file, operations, path)
 			}
 		}
-		// reqOpt := getFromForm(r.Form)
-		// fmt.Printf("%v\n", reqOpt)
 		return reqOpt
-
-		// set uploads to operations
-		// for file, paths := range uploads {
-		// 	for _, path := range paths {
-		// 		set(file, operations, path)
-		// 	}
-		// }
 	case ContentTypeGraphQL:
 		body, err := ioutil.ReadAll(r.Body)
 		if err != nil {
@@ -257,7 +248,27 @@ func NewRequestOptions(r *http.Request) *RequestOptions {
 // This handler takes a SubscriptionManager and adds/removes subscriptions
 // as they are started/stopped by the client.
 func NewHandlerFunc(config HandlerConfig) func(http.ResponseWriter, *http.Request) {
+	subscriptionManager := graphqlws.NewSubscriptionManager(config.Schema)
+	// Create a WebSocket/HTTP handler
+	graphqlwsHandler := pubsub.NewHandlerFunc(graphqlws.HandlerConfig{
+		// Wire up the GraphqL WebSocket handler with the subscription manager
+		SubscriptionManager: subscriptionManager,
+
+		// Optional: Add a hook to resolve auth tokens into users that are
+		// then stored on the GraphQL WS connections
+		Authenticate: func(authToken string) (interface{}, error) {
+			// This is just a dumb example
+			return "Joe", nil
+		},
+	})
+
+	// subscriptions := subscriptionManager.Subscriptions()
+
 	return func(w http.ResponseWriter, r *http.Request) {
+		if r.Header["Connection"][0] == "Upgrade" {
+			graphqlwsHandler(w, r)
+			return
+		}
 		// get query
 		opts := NewRequestOptions(r)
 
@@ -273,7 +284,6 @@ func NewHandlerFunc(config HandlerConfig) func(http.ResponseWriter, *http.Reques
 		// if h.rootObjectFn != nil {
 		// 	params.RootObject = h.rootObjectFn(ctx, r)
 		// }
-		// result := graphql.Do(params)
 		result := graphql.Do(params)
 		//
 		// if formatErrorFn := h.formatErrorFn; formatErrorFn != nil && len(result.Errors) > 0 {
@@ -286,18 +296,18 @@ func NewHandlerFunc(config HandlerConfig) func(http.ResponseWriter, *http.Reques
 
 		// use proper JSON Header
 		w.Header().Add("Content-Type", "application/json; charset=utf-8")
-		json.NewEncoder(w).Encode(result)
-		// var buff []byte
+		// json.NewEncoder(w).Encode(result)
+		var buff []byte
 		// if h.pretty {
 		// 	w.WriteHeader(http.StatusOK)
 		// 	buff, _ = json.MarshalIndent(result, "", "\t")
 		//
 		// 	w.Write(buff)
 		// } else {
-		// w.WriteHeader(http.StatusOK)
-		// buff, _ = json.Marshal(result)
-		//
-		// w.Write(buff)
+		w.WriteHeader(http.StatusOK)
+		buff, _ = json.Marshal(result)
+
+		w.Write(buff)
 		// }
 
 		// if h.resultCallbackFn != nil {

@@ -2,7 +2,6 @@ package models
 
 import (
 	"context"
-	"fmt"
 	"io"
 	"log"
 	"time"
@@ -47,7 +46,6 @@ func (model *ModelArticle) Create(name string, description string, price float64
 	if err != nil {
 		return nil, err
 	}
-	fmt.Printf("%v %v\n", article, val)
 	res, err := model.collection.InsertOne(ctx, val)
 	if err != nil {
 		return nil, err
