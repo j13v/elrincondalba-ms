@@ -1,0 +1,335 @@
+{
+	"ImportPath": "github.com/j13v/elrincondalba-ms",
+	"GoVersion": "go1.10",
+	"GodepVersion": "v80",
+	"Deps": [
+		{
+			"ImportPath": "github.com/corpix/uarand",
+			"Comment": "v0.0.0",
+			"Rev": "37c9140f52f6bf4998ff7617c456d554d6a2dc2f"
+		},
+		{
+			"ImportPath": "github.com/functionalfoundry/graphqlws",
+			"Rev": "4a19181eb54fa93f0fcece2df171409a755b37d8"
+		},
+		{
+			"ImportPath": "github.com/go-stack/stack",
+			"Comment": "v1.8.0",
+			"Rev": "2fee6af1a9795aafbe0253a0cfbdf668e1fb8a9a"
+		},
+		{
+			"ImportPath": "github.com/golang/snappy",
+			"Rev": "2e65f85255dbc3072edf28d6b5b8efc472979f5a"
+		},
+		{
+			"ImportPath": "github.com/google/uuid",
+			"Comment": "v1.1.0",
+			"Rev": "9b3b1e0f5f99ae461456d768e7d301a7acdaa2d8"
+		},
+		{
+			"ImportPath": "github.com/gorilla/context",
+			"Comment": "v1.1-2-ga8d44e7",
+			"Rev": "a8d44e7d8e4d532b6a27a02dd82abb31cc1b01bd"
+		},
+		{
+			"ImportPath": "github.com/gorilla/mux",
+			"Comment": "v1.1-7-g9c19ed5",
+			"Rev": "9c19ed558d5df4da88e2ade9c8940d742aef0e7e"
+		},
+		{
+			"ImportPath": "github.com/gorilla/websocket",
+			"Comment": "v1.4.0-8-g7c8e298",
+			"Rev": "7c8e298727d149d7c329b4dec7e94e1932ac5c11"
+		},
+		{
+			"ImportPath": "github.com/graphql-go/graphql",
+			"Comment": "v0.7.7-2-g21fe71d",
+			"Rev": "21fe71deb5864761ea88e1dbc98e973964c9127c"
+		},
+		{
+			"ImportPath": "github.com/graphql-go/graphql/gqlerrors",
+			"Comment": "v0.7.7-2-g21fe71d",
+			"Rev": "21fe71deb5864761ea88e1dbc98e973964c9127c"
+		},
+		{
+			"ImportPath": "github.com/graphql-go/graphql/language/ast",
+			"Comment": "v0.7.7-2-g21fe71d",
+			"Rev": "21fe71deb5864761ea88e1dbc98e973964c9127c"
+		},
+		{
+			"ImportPath": "github.com/graphql-go/graphql/language/kinds",
+			"Comment": "v0.7.7-2-g21fe71d",
+			"Rev": "21fe71deb5864761ea88e1dbc98e973964c9127c"
+		},
+		{
+			"ImportPath": "github.com/graphql-go/graphql/language/lexer",
+			"Comment": "v0.7.7-2-g21fe71d",
+			"Rev": "21fe71deb5864761ea88e1dbc98e973964c9127c"
+		},
+		{
+			"ImportPath": "github.com/graphql-go/graphql/language/location",
+			"Comment": "v0.7.7-2-g21fe71d",
+			"Rev": "21fe71deb5864761ea88e1dbc98e973964c9127c"
+		},
+		{
+			"ImportPath": "github.com/graphql-go/graphql/language/parser",
+			"Comment": "v0.7.7-2-g21fe71d",
+			"Rev": "21fe71deb5864761ea88e1dbc98e973964c9127c"
+		},
+		{
+			"ImportPath": "github.com/graphql-go/graphql/language/printer",
+			"Comment": "v0.7.7-2-g21fe71d",
+			"Rev": "21fe71deb5864761ea88e1dbc98e973964c9127c"
+		},
+		{
+			"ImportPath": "github.com/graphql-go/graphql/language/source",
+			"Comment": "v0.7.7-2-g21fe71d",
+			"Rev": "21fe71deb5864761ea88e1dbc98e973964c9127c"
+		},
+		{
+			"ImportPath": "github.com/graphql-go/graphql/language/typeInfo",
+			"Comment": "v0.7.7-2-g21fe71d",
+			"Rev": "21fe71deb5864761ea88e1dbc98e973964c9127c"
+		},
+		{
+			"ImportPath": "github.com/graphql-go/graphql/language/visitor",
+			"Comment": "v0.7.7-2-g21fe71d",
+			"Rev": "21fe71deb5864761ea88e1dbc98e973964c9127c"
+		},
+		{
+			"ImportPath": "github.com/graphql-go/relay",
+			"Rev": "54350098cfe5942bc76186efa1f29ca286f6d54d"
+		},
+		{
+			"ImportPath": "github.com/icrowley/fake",
+			"Rev": "4178557ae428460c3780a381c824a1f3aceb6325"
+		},
+		{
+			"ImportPath": "github.com/konsorten/go-windows-terminal-sequences",
+			"Comment": "v1.0.1",
+			"Rev": "5c8c8bd35d3832f5d134ae1e1e375b69a4d25242"
+		},
+		{
+			"ImportPath": "github.com/mattn/go-colorable",
+			"Comment": "v0.1.0",
+			"Rev": "efa589957cd060542a26d2dd7832fd6a6c6c3ade"
+		},
+		{
+			"ImportPath": "github.com/mattn/go-isatty",
+			"Comment": "v0.0.4-6-g3fb116b",
+			"Rev": "3fb116b820352b7f0c281308a4d6250c22d94e27"
+		},
+		{
+			"ImportPath": "github.com/mgutz/ansi",
+			"Rev": "9520e82c474b0a04dd04f8a40959027271bab992"
+		},
+		{
+			"ImportPath": "github.com/mongodb/mongo-go-driver/bson",
+			"Comment": "v0.3.0-5-g55ec089",
+			"Rev": "55ec0894785b750e5fb0ab6aac13218b59e4627f"
+		},
+		{
+			"ImportPath": "github.com/mongodb/mongo-go-driver/bson/bsoncodec",
+			"Comment": "v0.3.0-5-g55ec089",
+			"Rev": "55ec0894785b750e5fb0ab6aac13218b59e4627f"
+		},
+		{
+			"ImportPath": "github.com/mongodb/mongo-go-driver/bson/bsonrw",
+			"Comment": "v0.3.0-5-g55ec089",
+			"Rev": "55ec0894785b750e5fb0ab6aac13218b59e4627f"
+		},
+		{
+			"ImportPath": "github.com/mongodb/mongo-go-driver/bson/bsontype",
+			"Comment": "v0.3.0-5-g55ec089",
+			"Rev": "55ec0894785b750e5fb0ab6aac13218b59e4627f"
+		},
+		{
+			"ImportPath": "github.com/mongodb/mongo-go-driver/bson/primitive",
+			"Comment": "v0.3.0-5-g55ec089",
+			"Rev": "55ec0894785b750e5fb0ab6aac13218b59e4627f"
+		},
+		{
+			"ImportPath": "github.com/mongodb/mongo-go-driver/event",
+			"Comment": "v0.3.0-5-g55ec089",
+			"Rev": "55ec0894785b750e5fb0ab6aac13218b59e4627f"
+		},
+		{
+			"ImportPath": "github.com/mongodb/mongo-go-driver/internal",
+			"Comment": "v0.3.0-5-g55ec089",
+			"Rev": "55ec0894785b750e5fb0ab6aac13218b59e4627f"
+		},
+		{
+			"ImportPath": "github.com/mongodb/mongo-go-driver/mongo",
+			"Comment": "v0.3.0-5-g55ec089",
+			"Rev": "55ec0894785b750e5fb0ab6aac13218b59e4627f"
+		},
+		{
+			"ImportPath": "github.com/mongodb/mongo-go-driver/mongo/gridfs",
+			"Comment": "v0.3.0-5-g55ec089",
+			"Rev": "55ec0894785b750e5fb0ab6aac13218b59e4627f"
+		},
+		{
+			"ImportPath": "github.com/mongodb/mongo-go-driver/mongo/options",
+			"Comment": "v0.3.0-5-g55ec089",
+			"Rev": "55ec0894785b750e5fb0ab6aac13218b59e4627f"
+		},
+		{
+			"ImportPath": "github.com/mongodb/mongo-go-driver/mongo/readconcern",
+			"Comment": "v0.3.0-5-g55ec089",
+			"Rev": "55ec0894785b750e5fb0ab6aac13218b59e4627f"
+		},
+		{
+			"ImportPath": "github.com/mongodb/mongo-go-driver/mongo/readpref",
+			"Comment": "v0.3.0-5-g55ec089",
+			"Rev": "55ec0894785b750e5fb0ab6aac13218b59e4627f"
+		},
+		{
+			"ImportPath": "github.com/mongodb/mongo-go-driver/mongo/writeconcern",
+			"Comment": "v0.3.0-5-g55ec089",
+			"Rev": "55ec0894785b750e5fb0ab6aac13218b59e4627f"
+		},
+		{
+			"ImportPath": "github.com/mongodb/mongo-go-driver/tag",
+			"Comment": "v0.3.0-5-g55ec089",
+			"Rev": "55ec0894785b750e5fb0ab6aac13218b59e4627f"
+		},
+		{
+			"ImportPath": "github.com/mongodb/mongo-go-driver/version",
+			"Comment": "v0.3.0-5-g55ec089",
+			"Rev": "55ec0894785b750e5fb0ab6aac13218b59e4627f"
+		},
+		{
+			"ImportPath": "github.com/mongodb/mongo-go-driver/x/bsonx",
+			"Comment": "v0.3.0-5-g55ec089",
+			"Rev": "55ec0894785b750e5fb0ab6aac13218b59e4627f"
+		},
+		{
+			"ImportPath": "github.com/mongodb/mongo-go-driver/x/bsonx/bsoncore",
+			"Comment": "v0.3.0-5-g55ec089",
+			"Rev": "55ec0894785b750e5fb0ab6aac13218b59e4627f"
+		},
+		{
+			"ImportPath": "github.com/mongodb/mongo-go-driver/x/mongo/driver",
+			"Comment": "v0.3.0-5-g55ec089",
+			"Rev": "55ec0894785b750e5fb0ab6aac13218b59e4627f"
+		},
+		{
+			"ImportPath": "github.com/mongodb/mongo-go-driver/x/mongo/driver/auth",
+			"Comment": "v0.3.0-5-g55ec089",
+			"Rev": "55ec0894785b750e5fb0ab6aac13218b59e4627f"
+		},
+		{
+			"ImportPath": "github.com/mongodb/mongo-go-driver/x/mongo/driver/auth/internal/gssapi",
+			"Comment": "v0.3.0-5-g55ec089",
+			"Rev": "55ec0894785b750e5fb0ab6aac13218b59e4627f"
+		},
+		{
+			"ImportPath": "github.com/mongodb/mongo-go-driver/x/mongo/driver/session",
+			"Comment": "v0.3.0-5-g55ec089",
+			"Rev": "55ec0894785b750e5fb0ab6aac13218b59e4627f"
+		},
+		{
+			"ImportPath": "github.com/mongodb/mongo-go-driver/x/mongo/driver/topology",
+			"Comment": "v0.3.0-5-g55ec089",
+			"Rev": "55ec0894785b750e5fb0ab6aac13218b59e4627f"
+		},
+		{
+			"ImportPath": "github.com/mongodb/mongo-go-driver/x/mongo/driver/uuid",
+			"Comment": "v0.3.0-5-g55ec089",
+			"Rev": "55ec0894785b750e5fb0ab6aac13218b59e4627f"
+		},
+		{
+			"ImportPath": "github.com/mongodb/mongo-go-driver/x/network/address",
+			"Comment": "v0.3.0-5-g55ec089",
+			"Rev": "55ec0894785b750e5fb0ab6aac13218b59e4627f"
+		},
+		{
+			"ImportPath": "github.com/mongodb/mongo-go-driver/x/network/command",
+			"Comment": "v0.3.0-5-g55ec089",
+			"Rev": "55ec0894785b750e5fb0ab6aac13218b59e4627f"
+		},
+		{
+			"ImportPath": "github.com/mongodb/mongo-go-driver/x/network/compressor",
+			"Comment": "v0.3.0-5-g55ec089",
+			"Rev": "55ec0894785b750e5fb0ab6aac13218b59e4627f"
+		},
+		{
+			"ImportPath": "github.com/mongodb/mongo-go-driver/x/network/connection",
+			"Comment": "v0.3.0-5-g55ec089",
+			"Rev": "55ec0894785b750e5fb0ab6aac13218b59e4627f"
+		},
+		{
+			"ImportPath": "github.com/mongodb/mongo-go-driver/x/network/connstring",
+			"Comment": "v0.3.0-5-g55ec089",
+			"Rev": "55ec0894785b750e5fb0ab6aac13218b59e4627f"
+		},
+		{
+			"ImportPath": "github.com/mongodb/mongo-go-driver/x/network/description",
+			"Comment": "v0.3.0-5-g55ec089",
+			"Rev": "55ec0894785b750e5fb0ab6aac13218b59e4627f"
+		},
+		{
+			"ImportPath": "github.com/mongodb/mongo-go-driver/x/network/result",
+			"Comment": "v0.3.0-5-g55ec089",
+			"Rev": "55ec0894785b750e5fb0ab6aac13218b59e4627f"
+		},
+		{
+			"ImportPath": "github.com/mongodb/mongo-go-driver/x/network/wiremessage",
+			"Comment": "v0.3.0-5-g55ec089",
+			"Rev": "55ec0894785b750e5fb0ab6aac13218b59e4627f"
+		},
+		{
+			"ImportPath": "github.com/sirupsen/logrus",
+			"Comment": "v1.3.0-9-g4ea4861",
+			"Rev": "4ea4861398d99a2d05be29675c5b74caf7bea95e"
+		},
+		{
+			"ImportPath": "github.com/x-cray/logrus-prefixed-formatter",
+			"Comment": "v0.5.2",
+			"Rev": "bb2702d423886830dee131692131d35648c382e2"
+		},
+		{
+			"ImportPath": "github.com/xdg/scram",
+			"Rev": "7eeb5667e42c09cb51bf7b7c28aea8c56767da90"
+		},
+		{
+			"ImportPath": "github.com/xdg/stringprep",
+			"Comment": "v1.0.0-1-g73f8eec",
+			"Rev": "73f8eece6fdcd902c185bf651de50f3828bed5ed"
+		},
+		{
+			"ImportPath": "golang.org/x/crypto/pbkdf2",
+			"Rev": "193df9c0f06f8bb35fba505183eaf0acc0136505"
+		},
+		{
+			"ImportPath": "golang.org/x/crypto/ssh/terminal",
+			"Rev": "193df9c0f06f8bb35fba505183eaf0acc0136505"
+		},
+		{
+			"ImportPath": "golang.org/x/net/context",
+			"Rev": "65e2d4e15006aab9813ff8769e768bbf4bb667a0"
+		},
+		{
+			"ImportPath": "golang.org/x/sync/semaphore",
+			"Rev": "37e7f081c4d4c64e13b10787722085407fe5d15f"
+		},
+		{
+			"ImportPath": "golang.org/x/sys/unix",
+			"Rev": "41f3e6584952bb034a481797859f6ab34b6803bd"
+		},
+		{
+			"ImportPath": "golang.org/x/sys/windows",
+			"Rev": "41f3e6584952bb034a481797859f6ab34b6803bd"
+		},
+		{
+			"ImportPath": "golang.org/x/text/transform",
+			"Comment": "v0.3.0-49-g5c1cf69",
+			"Rev": "5c1cf69b5978e5a34c5f9ba09a83e56acc4b7877"
+		},
+		{
+			"ImportPath": "golang.org/x/text/unicode/norm",
+			"Comment": "v0.3.0-49-g5c1cf69",
+			"Rev": "5c1cf69b5978e5a34c5f9ba09a83e56acc4b7877"
+		}
+	]
+}

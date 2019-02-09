@@ -22,15 +22,22 @@ import (
 )
 
 func main() {
+	httpPort := os.Getenv("PORT")
+	if httpPort == "" {
+		httpPort = "8080"
+	}
+	mongoUri := os.Getenv("MONGODB")
+	if mongoUri == "" {
+		mongoUri = "mongodb://localhost:27017"
+	}
+
 	logger := logger.NewLogger("server")
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	client, err := mongo.Connect(ctx, "mongodb://localhost:27017")
+	client, err := mongo.Connect(ctx, mongoUri)
 	if err != nil {
 		fmt.Print(err)
 	}
-
-	httpPort := 8080
 
 	db := client.Database("elrincondalba")
 	bucket, err := gridfs.NewBucket(db)
@@ -79,7 +86,7 @@ func main() {
 		"host": "0.0.0.0",
 	}).Info("Server is running")
 
-	err = http.ListenAndServe(fmt.Sprintf(":%d", httpPort), logRequest(http.DefaultServeMux, logger))
+	err = http.ListenAndServe(fmt.Sprintf(":%s", httpPort), logRequest(http.DefaultServeMux, logger))
 
 	if err != nil {
 		log.Fatal(err)

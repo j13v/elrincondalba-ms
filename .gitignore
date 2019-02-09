@@ -12,3 +12,4 @@
 *.out
 main
 debug
+.docker_build
