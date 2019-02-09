@@ -18,28 +18,38 @@ import (
 	"github.com/mongodb/mongo-go-driver/bson/primitive"
 	"github.com/mongodb/mongo-go-driver/mongo"
 	"github.com/mongodb/mongo-go-driver/mongo/gridfs"
+	"github.com/mongodb/mongo-go-driver/x/network/connstring"
 	"github.com/sirupsen/logrus"
 )
 
 func main() {
 	httpPort := os.Getenv("PORT")
+	fmt.Printf("%v\n", httpPort)
 	if httpPort == "" {
 		httpPort = "8080"
 	}
-	mongoUri := os.Getenv("MONGODB")
-	if mongoUri == "" {
-		mongoUri = "mongodb://localhost:27017"
+
+	mongoURI := os.Getenv("MONGODB_URI")
+	mongoDbName := os.Getenv("MONGODB_DB")
+
+	fmt.Printf("%s %s %s\n", httpPort, mongoURI, mongoDbName)
+	if mongoURI == "" {
+		mongoURI = "mongodb://localhost:27017/elrincondalba"
+	}
+	mongoURIParams, err := connstring.Parse(mongoURI)
+	if err == nil {
+		mongoDbName = mongoURIParams.Database
 	}
 
 	logger := logger.NewLogger("server")
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	client, err := mongo.Connect(ctx, mongoUri)
+	client, err := mongo.Connect(ctx, mongoURI)
 	if err != nil {
 		fmt.Print(err)
 	}
 
-	db := client.Database("elrincondalba")
+	db := client.Database(mongoDbName)
 	bucket, err := gridfs.NewBucket(db)
 	if err != nil {
 		panic(err)
@@ -82,7 +92,7 @@ func main() {
 	http.Handle("/", rtr)
 
 	logger.WithFields(logrus.Fields{
-		"port": "8080",
+		"port": httpPort,
 		"host": "0.0.0.0",
 	}).Info("Server is running")
 

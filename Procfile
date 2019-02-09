@@ -1,1 +1,1 @@
-“web: elrincondalba-ms”
+web: go run main.go
