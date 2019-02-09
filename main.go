@@ -2,52 +2,25 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
-	"math/rand"
+	"log"
 	"net/http"
 	"os"
 	"time"
 
-	"github.com/functionalfoundry/graphqlws"
-	"github.com/graphql-go/graphql"
-	"github.com/jal88/elrincondalba-ms/definitions"
+	"github.com/jal88/elrincondalba-ms/graphql"
 	decs "github.com/jal88/elrincondalba-ms/graphql/decorators"
 	"github.com/jal88/elrincondalba-ms/graphql/schema"
 	"github.com/jal88/elrincondalba-ms/logger"
 	"github.com/jal88/elrincondalba-ms/mongodb"
-	"github.com/jal88/elrincondalba-ms/pubsub"
-	"github.com/mongodb/mongo-go-driver/bson"
 	"github.com/mongodb/mongo-go-driver/mongo"
 	"github.com/sirupsen/logrus"
 )
-
-func executeQuery(
-	schema graphql.Schema,
-	query string,
-	variables map[string]interface{},
-	ctx context.Context) *graphql.Result {
-	result := graphql.Do(graphql.Params{
-		Schema:         schema,
-		RequestString:  query,
-		VariableValues: variables,
-		Context:        ctx,
-	})
-	if len(result.Errors) > 0 {
-		fmt.Printf("errors: %v", result.Errors)
-	}
-	return result
-}
 
 func setupResponse(w *http.ResponseWriter, req *http.Request) {
 	(*w).Header().Set("Access-Control-Allow-Origin", "*")
 	(*w).Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
 	(*w).Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
-}
-
-type BodyQueryMessage struct {
-	Query     string                 `json:"query"`
-	Variables map[string]interface{} `json:"variables"`
 }
 
 func main() {
@@ -59,109 +32,46 @@ func main() {
 		fmt.Print(err)
 	}
 
+	httpPort := 8080
+
 	db := client.Database("elrincondalba")
 	// Primary data initialization
 	if os.Getenv("INIT_DATABASE") != "" {
 		mongodb.InitData(db)
 	}
 	repo := mongodb.CreateRepo(db)
-
-	// Create a subscription manager
-	subscriptionManager := graphqlws.NewSubscriptionManager(&schema.Schema)
-	// Create a WebSocket/HTTP handler
-	graphqlwsHandler := pubsub.NewHandlerFunc(graphqlws.HandlerConfig{
-		// Wire up the GraphqL WebSocket handler with the subscription manager
-		SubscriptionManager: subscriptionManager,
-
-		// Optional: Add a hook to resolve auth tokens into users that are
-		// then stored on the GraphQL WS connections
-		Authenticate: func(authToken string) (interface{}, error) {
-			// This is just a dumb example
-			return "Joe", nil
-		},
-	})
-
 	http.Handle("/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Write(page)
 	}))
 
-	subscriptions := subscriptionManager.Subscriptions()
+	ctx = context.Background()
+	ctx = decs.ContextRepoApply(repo)(ctx)
 
-	go func() {
-		for {
-			time.Sleep(2 * time.Second)
-			result := db.Collection("article").FindOne(context.Background(), bson.M{
-				"rating": bson.M{"$gte": " Math.random()"},
-			})
-			article := definitions.Article{}
-			result.Decode(&article)
-			article.Rating = (article.Rating + 1) % 5
-			article.Price = rand.Float64() * 100
-			repo.Article.Sync(&article)
-
-			for conn, subs := range subscriptions {
-				conn.ID()
-				conn.User()
-				for _, subscription := range subs {
-					// Prepare an execution context for running the query
-					ctx := context.Background()
-					ctx = decs.ContextPubSubApply(article)(ctx)
-					// Re-execute the subscription query
-					params := graphql.Params{
-						Schema:         schema.Schema, // The GraphQL schema
-						RequestString:  subscription.Query,
-						VariableValues: subscription.Variables,
-						OperationName:  subscription.OperationName,
-						Context:        ctx,
-					}
-					result := graphql.Do(params)
-					// Send query results back to the subscriber at any point
-					data := graphqlws.DataMessagePayload{
-						// Data can be anything (interface{})
-						Data: result.Data,
-						// Errors is optional ([]error)
-						Errors: graphqlws.ErrorsFromGraphQLErrors(result.Errors),
-					}
-					subscription.SendData(&data)
-				}
-			}
-		}
-	}()
-
-	http.HandleFunc("/graphql", func(w http.ResponseWriter, r *http.Request) {
-
-		if r.Header["Connection"][0] == "Upgrade" {
-			graphqlwsHandler(w, r)
-		} else {
-			setupResponse(&w, r)
-			if (*r).Method == "OPTIONS" {
-				return
-			}
-			decoder := json.NewDecoder(r.Body)
-			var t BodyQueryMessage
-			err := decoder.Decode(&t)
-			if err != nil {
-				panic(err)
-			}
-
-			ctx := context.Background()
-			ctx = decs.ContextRepoApply(repo)(ctx)
-			// ctx = decs.DecoratorContextUserApply(u)(ctx)
-
-			result := executeQuery(
-				schema.Schema,
-				t.Query,
-				t.Variables,
-				ctx)
-			json.NewEncoder(w).Encode(result)
-		}
-	})
+	http.HandleFunc("/graphql", graphql.NewHandlerFunc(graphql.HandlerConfig{
+		Schema:  &schema.Schema,
+		Context: ctx,
+	}))
 
 	logger.WithFields(logrus.Fields{
 		"port": "8080",
 		"host": "0.0.0.0",
 	}).Info("Server is running")
-	http.ListenAndServe(":8080", nil)
+
+	err = http.ListenAndServe(fmt.Sprintf(":%d", httpPort), logRequest(http.DefaultServeMux, logger))
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
+func logRequest(handler http.Handler, logger *logrus.Entry) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		logger.WithFields(logrus.Fields{
+			"method": r.Method,
+			"remote": r.RemoteAddr,
+			"host":   r.URL,
+		}).Info("Request")
+		handler.ServeHTTP(w, r)
+	})
 }
 
 //////// GRAPHiQL ////////
@@ -300,3 +210,93 @@ var page = []byte(`
 // ctx := context.Background()
 // ctx = context.WithValue(ctx, "model", models))
 // context.WithValue(ctx, "user", users))
+
+// // Create a subscription manager
+// subscriptionManager := graphqlws.NewSubscriptionManager(&schema.Schema)
+// // Create a WebSocket/HTTP handler
+// graphqlwsHandler := pubsub.NewHandlerFunc(graphqlws.HandlerConfig{
+// 	// Wire up the GraphqL WebSocket handler with the subscription manager
+// 	SubscriptionManager: subscriptionManager,
+//
+// 	// Optional: Add a hook to resolve auth tokens into users that are
+// 	// then stored on the GraphQL WS connections
+// 	Authenticate: func(authToken string) (interface{}, error) {
+// 		// This is just a dumb example
+// 		return "Joe", nil
+// 	},
+// })
+//
+
+//
+// subscriptions := subscriptionManager.Subscriptions()
+
+// go func() {
+// 	for {
+// 		time.Sleep(2 * time.Second)
+// 		result := db.Collection("article").FindOne(context.Background(), bson.M{
+// 			"rating": bson.M{"$gte": " Math.random()"},
+// 		})
+// 		article := definitions.Article{}
+// 		result.Decode(&article)
+// 		article.Rating = (article.Rating + 1) % 5
+// 		article.Price = rand.Float64() * 100
+// 		repo.Article.Sync(&article)
+//
+// 		for conn, subs := range subscriptions {
+// 			conn.ID()
+// 			conn.User()
+// 			for _, subscription := range subs {
+// 				// Prepare an execution context for running the query
+// 				ctx := context.Background()
+// 				ctx = decs.ContextPubSubApply(article)(ctx)
+// 				// Re-execute the subscription query
+// 				params := graphql.Params{
+// 					Schema:         schema.Schema, // The GraphQL schema
+// 					RequestString:  subscription.Query,
+// 					VariableValues: subscription.Variables,
+// 					OperationName:  subscription.OperationName,
+// 					Context:        ctx,
+// 				}
+// 				result := graphql.Do(params)
+// 				// Send query results back to the subscriber at any point
+// 				data := graphqlws.DataMessagePayload{
+// 					// Data can be anything (interface{})
+// 					Data: result.Data,
+// 					// Errors is optional ([]error)
+// 					Errors: graphqlws.ErrorsFromGraphQLErrors(result.Errors),
+// 				}
+// 				subscription.SendData(&data)
+// 			}
+// 		}
+// 	}
+// }()
+//
+// http.HandleFunc("/graphql", func(w http.ResponseWriter, r *http.Request) {
+//
+// 	if r.Header["Connection"][0] == "Upgrade" {
+// 		graphqlwsHandler(w, r)
+// 	} else {
+// 		ghandler.New(executor)
+// 		setupResponse(&w, r)
+// 		if (*r).Method == "OPTIONS" {
+// 			return
+// 		}
+// 		decoder := json.NewDecoder(r.Body)
+// 		var t BodyQueryMessage
+// 		err := decoder.Decode(&t)
+// 		if err != nil {
+// 			panic(err)
+// 		}
+//
+// 		ctx := context.Background()
+// 		ctx = decs.ContextRepoApply(repo)(ctx)
+// 		// ctx = decs.DecoratorContextUserApply(u)(ctx)
+//
+// 		result := executeQuery(
+// 			schema.Schema,
+// 			t.Query,
+// 			t.Variables,
+// 			ctx)
+// 		json.NewEncoder(w).Encode(result)
+// 	}
+// })

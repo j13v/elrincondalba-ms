@@ -41,7 +41,7 @@ var TypeArticle = graphql.NewObject(
 				Type: graphql.Float,
 			},
 			"images": &graphql.Field{
-				Type: graphql.NewList(graphql.String),
+				Type: graphql.NewList(ObjectID),
 			},
 			"category": &graphql.Field{
 				Type: graphql.String,

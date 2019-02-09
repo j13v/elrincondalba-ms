@@ -1,20 +1,18 @@
 package mutations
 
 import (
-	"fmt"
-
 	"github.com/graphql-go/graphql"
+	defs "github.com/jal88/elrincondalba-ms/definitions"
 	decs "github.com/jal88/elrincondalba-ms/graphql/decorators"
 	"github.com/jal88/elrincondalba-ms/graphql/types"
 	"github.com/jal88/elrincondalba-ms/mongodb"
 	"github.com/mongodb/mongo-go-driver/bson/primitive"
 )
 
-func parseImages(input []interface{}) (out []string) {
+func parseImages(input []interface{}) (out []defs.File) {
 	for _, v := range input {
 		// using a type assertion, convert v to a string
-		out = append(out, v.(string))
-		fmt.Println(out)
+		out = append(out, v.(defs.File))
 	}
 	return out
 }
@@ -28,13 +26,13 @@ var MutationArticle = graphql.Fields{
 				Type: graphql.NewNonNull(graphql.String),
 			},
 			"description": &graphql.ArgumentConfig{
-				Type: graphql.String,
+				Type: graphql.NewNonNull(graphql.String),
 			},
 			"price": &graphql.ArgumentConfig{
 				Type: graphql.NewNonNull(graphql.Float),
 			},
 			"images": &graphql.ArgumentConfig{
-				Type: graphql.NewNonNull(graphql.NewList(graphql.String)),
+				Type: graphql.NewNonNull(graphql.NewList(types.TypeUpload)),
 			},
 			"category": &graphql.ArgumentConfig{
 				Type: graphql.NewNonNull(graphql.String),
@@ -52,7 +50,6 @@ var MutationArticle = graphql.Fields{
 				params.Args["category"].(string),
 				int8(params.Args["rating"].(int)),
 			)
-			//qltype.ArticlesMock = append(qltype.ArticlesMock, article)
 			return article, err
 		}),
 	},

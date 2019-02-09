@@ -41,7 +41,6 @@ func InitData(db *mongo.Database) {
 		"M",
 		"L",
 		"XL",
-		"XXL",
 	}
 	logger := logger.NewLogger("initData")
 	repo := CreateRepo(db)
@@ -75,7 +74,7 @@ func InitData(db *mongo.Database) {
 			fake.ProductName(),
 			fake.Sentences(),
 			math.Floor(rand.Float64()*10000)/100,
-			[]string{"adsffasdasd"},
+			nil,
 			categories[rand.Intn(len(categories))],
 			int8(rand.Intn(5)),
 		)

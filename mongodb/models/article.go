@@ -2,6 +2,8 @@ package models
 
 import (
 	"context"
+	"fmt"
+	"io"
 	"log"
 	"time"
 
@@ -10,18 +12,32 @@ import (
 	"github.com/mongodb/mongo-go-driver/bson"
 	"github.com/mongodb/mongo-go-driver/bson/primitive"
 	"github.com/mongodb/mongo-go-driver/mongo"
+	"github.com/mongodb/mongo-go-driver/mongo/gridfs"
 )
 
 type ModelArticle struct {
 	collection *mongo.Collection
+	bucket     *gridfs.Bucket
 }
 
 func NewModelArticle(db *mongo.Database) *ModelArticle {
-	return &ModelArticle{collection: db.Collection("article")}
+	bucket, _ := gridfs.NewBucket(db)
+	return &ModelArticle{
+		collection: db.Collection("article"),
+		bucket:     bucket,
+	}
 }
 
-func (model *ModelArticle) Create(name string, description string, price float64, images []string, category string, rating int8) (*defs.Article, error) {
-	article, err := defs.NewArticle(name, description, price, images, category, rating)
+func (model *ModelArticle) Create(name string, description string, price float64, images []defs.File, category string, rating int8) (*defs.Article, error) {
+	imageIds := []primitive.ObjectID{}
+	for _, image := range images {
+		imageId, err := model.UploadImage(image.Filename, image.File)
+		if err != nil {
+			return nil, err
+		}
+		imageIds = append(imageIds, imageId)
+	}
+	article, err := defs.NewArticle(name, description, price, imageIds, category, rating)
 	if err != nil {
 		return nil, err
 	}
@@ -31,6 +47,7 @@ func (model *ModelArticle) Create(name string, description string, price float64
 	if err != nil {
 		return nil, err
 	}
+	fmt.Printf("%v %v\n", article, val)
 	res, err := model.collection.InsertOne(ctx, val)
 	if err != nil {
 		return nil, err
@@ -39,6 +56,10 @@ func (model *ModelArticle) Create(name string, description string, price float64
 	return article, err
 }
 
+func (model *ModelArticle) UploadImage(filename string, source io.Reader) (primitive.ObjectID, error) {
+	id, err := model.bucket.UploadFromStream(filename, source)
+	return id, err
+}
 func (model *ModelArticle) FindOne(args *map[string]interface{}) (interface{}, error) {
 	article := defs.Article{}
 	cursor, err := oprs.FindOne(model.collection, context.Background(), args)
