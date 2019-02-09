@@ -2,8 +2,8 @@ package types
 
 import (
 	"github.com/graphql-go/graphql"
-	decs "github.com/jal88/elrincondalba-ms/graphql/decorators"
-	"github.com/jal88/elrincondalba-ms/mongodb"
+	decs "github.com/j13v/elrincondalba-ms/graphql/decorators"
+	"github.com/j13v/elrincondalba-ms/mongodb"
 )
 
 var FieldGetOrder = &graphql.Field{

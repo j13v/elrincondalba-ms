@@ -6,7 +6,7 @@ import (
 	"fmt"
 
 	"github.com/graphql-go/graphql"
-	"github.com/jal88/elrincondalba-ms/util"
+	"github.com/j13v/elrincondalba-ms/util"
 )
 
 type User struct {

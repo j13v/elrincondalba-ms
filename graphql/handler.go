@@ -13,8 +13,8 @@ import (
 	"github.com/functionalfoundry/graphqlws"
 	"github.com/graphql-go/graphql"
 	"github.com/graphql-go/graphql/gqlerrors"
-	defs "github.com/jal88/elrincondalba-ms/definitions"
-	"github.com/jal88/elrincondalba-ms/pubsub"
+	defs "github.com/j13v/elrincondalba-ms/definitions"
+	"github.com/j13v/elrincondalba-ms/pubsub"
 )
 
 const (

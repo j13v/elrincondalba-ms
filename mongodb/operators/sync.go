@@ -4,7 +4,7 @@ package operators
 Sync synchronize a document in the collection using an struct
 */import (
 	"context"
-	"github.com/jal88/elrincondalba-ms/mongodb/helpers"
+	"github.com/j13v/elrincondalba-ms/mongodb/helpers"
 	"github.com/mongodb/mongo-go-driver/bson"
 	"github.com/mongodb/mongo-go-driver/mongo"
 )

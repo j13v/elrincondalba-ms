@@ -4,8 +4,8 @@ import (
 	"context"
 	"time"
 
-	defs "github.com/jal88/elrincondalba-ms/definitions"
-	oprs "github.com/jal88/elrincondalba-ms/mongodb/operators"
+	defs "github.com/j13v/elrincondalba-ms/definitions"
+	oprs "github.com/j13v/elrincondalba-ms/mongodb/operators"
 	"github.com/mongodb/mongo-go-driver/bson"
 	"github.com/mongodb/mongo-go-driver/bson/primitive"
 	"github.com/mongodb/mongo-go-driver/mongo"

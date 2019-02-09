@@ -5,7 +5,7 @@ import (
 
 	"github.com/functionalfoundry/graphqlws"
 	"github.com/gorilla/websocket"
-	"github.com/jal88/elrincondalba-ms/logger"
+	"github.com/j13v/elrincondalba-ms/logger"
 	log "github.com/sirupsen/logrus"
 )
 

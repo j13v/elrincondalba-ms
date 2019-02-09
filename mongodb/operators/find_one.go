@@ -3,7 +3,7 @@ package operators
 import (
 	"context"
 
-	"github.com/jal88/elrincondalba-ms/mongodb/helpers"
+	"github.com/j13v/elrincondalba-ms/mongodb/helpers"
 	"github.com/mongodb/mongo-go-driver/mongo"
 )
 

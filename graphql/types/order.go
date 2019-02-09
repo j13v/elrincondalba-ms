@@ -2,7 +2,7 @@ package types
 
 import (
 	"github.com/graphql-go/graphql"
-	"github.com/jal88/elrincondalba-ms/graphql/utils"
+	"github.com/j13v/elrincondalba-ms/graphql/utils"
 )
 
 /*

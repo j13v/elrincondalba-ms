@@ -2,10 +2,10 @@ package schema
 
 import (
 	"github.com/graphql-go/graphql"
-	"github.com/jal88/elrincondalba-ms/graphql/decorators"
-	"github.com/jal88/elrincondalba-ms/graphql/mutations"
-	"github.com/jal88/elrincondalba-ms/graphql/queries"
-	"github.com/jal88/elrincondalba-ms/graphql/types"
+	"github.com/j13v/elrincondalba-ms/graphql/decorators"
+	"github.com/j13v/elrincondalba-ms/graphql/mutations"
+	"github.com/j13v/elrincondalba-ms/graphql/queries"
+	"github.com/j13v/elrincondalba-ms/graphql/types"
 )
 
 var Schema, _ = graphql.NewSchema(

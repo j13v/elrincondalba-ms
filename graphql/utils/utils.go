@@ -9,7 +9,7 @@ import (
 
 	"github.com/graphql-go/graphql"
 	"github.com/graphql-go/relay"
-	"github.com/jal88/elrincondalba-ms/mongodb/helpers"
+	"github.com/j13v/elrincondalba-ms/mongodb/helpers"
 )
 
 func HexToBase64(strHex string) (string, error) {

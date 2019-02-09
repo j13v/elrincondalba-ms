@@ -7,8 +7,8 @@ import (
 	"math/rand"
 
 	"github.com/icrowley/fake"
-	defs "github.com/jal88/elrincondalba-ms/definitions"
-	"github.com/jal88/elrincondalba-ms/logger"
+	defs "github.com/j13v/elrincondalba-ms/definitions"
+	"github.com/j13v/elrincondalba-ms/logger"
 	"github.com/mongodb/mongo-go-driver/mongo"
 	"github.com/sirupsen/logrus"
 )

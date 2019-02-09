@@ -1,7 +1,7 @@
 package mongodb
 
 import (
-	"github.com/jal88/elrincondalba-ms/mongodb/models"
+	"github.com/j13v/elrincondalba-ms/mongodb/models"
 	"github.com/mongodb/mongo-go-driver/mongo"
 )
 
