@@ -1,5 +1,5 @@
 {
-	"ImportPath": "github.com/j13v/elrincondalba-ms",
+	"ImportPath": "elrincondalba-ms",
 	"GoVersion": "go1.10",
 	"GodepVersion": "v80",
 	"Deps": [
