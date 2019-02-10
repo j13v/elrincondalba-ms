@@ -1,9 +1,9 @@
 package definitions
 
-import "mime/multipart"
+import "io"
 
 type File struct {
-	File     multipart.File
+	File     io.Reader
 	Filename string
 	Size     int64
 }

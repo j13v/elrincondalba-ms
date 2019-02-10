@@ -64,7 +64,7 @@ func main() {
 	defer cancel()
 	client, err := mongo.Connect(ctx, mongoURI)
 	if err != nil {
-		fmt.Print(err)
+		panic(err)
 	}
 
 	db := client.Database(mongoDbName)

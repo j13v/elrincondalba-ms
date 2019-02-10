@@ -2,7 +2,6 @@ package models
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"time"
 
@@ -148,7 +147,6 @@ func (model *ModelStock) ensureIndex() error {
 	_, err := indexView.CreateOne(context.Background(), mongo.IndexModel{
 		Keys: bson.M{"article": bsonx.Int32(1), "order": bsonx.Int32(1)},
 	})
-	fmt.Printf("%v\n", err)
 	return err
 }
 
