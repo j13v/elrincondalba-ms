@@ -37,6 +37,7 @@ func main() {
 	if mongoURI == "" {
 		mongoURI = "mongodb://localhost:27017/elrincondalba"
 	}
+
 	mongoURIParams, err := connstring.Parse(mongoURI)
 	if err == nil {
 		mongoDbName = mongoURIParams.Database
