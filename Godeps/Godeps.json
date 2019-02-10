@@ -1,7 +1,10 @@
 {
-	"ImportPath": "elrincondalba-ms",
-	"GoVersion": "go1.10",
+	"ImportPath": "github.com/j13v/elrincondalba-ms",
+	"GoVersion": "go1.11",
 	"GodepVersion": "v80",
+	"Packages": [
+		"./..."
+	],
 	"Deps": [
 		{
 			"ImportPath": "github.com/corpix/uarand",
