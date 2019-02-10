@@ -24,6 +24,7 @@ import (
 
 func main() {
 	httpPort := os.Getenv("PORT")
+
 	fmt.Printf("%v\n", httpPort)
 	if httpPort == "" {
 		httpPort = "8080"
