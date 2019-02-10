@@ -22,10 +22,27 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+func corsHandler(h http.Handler, origin string) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", origin)
+		w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
+		w.Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
+		if r.Method == "OPTIONS" {
+			return
+		} else {
+			h.ServeHTTP(w, r)
+		}
+	}
+}
+
 func main() {
 	httpPort := os.Getenv("PORT")
+	httpCorsOrigin := os.Getenv("CORS_ORIGIN")
 
-	fmt.Printf("%v\n", httpPort)
+	if httpCorsOrigin == "" {
+		httpCorsOrigin = "*"
+	}
+
 	if httpPort == "" {
 		httpPort = "8080"
 	}
@@ -33,7 +50,6 @@ func main() {
 	mongoURI := os.Getenv("MONGODB_URI")
 	mongoDbName := os.Getenv("MONGODB_DB")
 
-	fmt.Printf("%s %s %s\n", httpPort, mongoURI, mongoDbName)
 	if mongoURI == "" {
 		mongoURI = "mongodb://localhost:27017/elrincondalba"
 	}
@@ -91,7 +107,7 @@ func main() {
 		w.Write(page)
 	}))
 
-	http.Handle("/", rtr)
+	http.Handle("/", corsHandler(rtr, httpCorsOrigin))
 
 	logger.WithFields(logrus.Fields{
 		"port": httpPort,
