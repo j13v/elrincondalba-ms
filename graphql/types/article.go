@@ -59,7 +59,7 @@ var TypeArticle = graphql.NewObject(
 				Type: graphql.NewList(TypeArticleStock),
 				Resolve: decs.ContextRepoConsumer(func(params graphql.ResolveParams, model mongodb.Repo) (interface{}, error) {
 					if id, ok := utils.GetValueByJSONTag(params.Source, "id"); ok {
-						stock, err := model.Stock.FindByArticle(id)
+						stock, err := model.Stock.FindAvailableByArticle(id)
 						return stock, err
 					}
 					return nil, nil

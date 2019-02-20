@@ -272,13 +272,20 @@ func NewHandlerFunc(config HandlerConfig) func(http.ResponseWriter, *http.Reques
 		// get query
 		opts := NewRequestOptions(r)
 
+		token := ""
+		if r.Header.Get("Authorization") != "" {
+			token = strings.SplitN(r.Header.Get("Authorization"), " ", 2)[1]
+		}
+		// Join contexts
+		ctx := context.WithValue(config.Context, "token", token)
+		ctx = context.WithValue(ctx, "secret", "secret")
 		// execute graphql query
 		params := graphql.Params{
 			Schema:         *config.Schema,
 			RequestString:  opts.Query,
 			VariableValues: opts.Variables,
 			OperationName:  opts.OperationName,
-			Context:        config.Context,
+			Context:        ctx,
 		}
 
 		// if h.rootObjectFn != nil {

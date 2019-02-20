@@ -9,5 +9,7 @@ var QueryArticle = graphql.Fields{
 	"getArticle":           types.FieldGetArticle,
 	"getArticlePriceRange": types.FieldArticlePriceRange,
 	"listArticles":         types.FieldListArticles,
+	"listArticleStock":     types.FieldArticleStock,
+	"listArticlesRelated":  types.FieldListArticlesRelated,
 	"listSizes":            types.FieldListSizes,
 }

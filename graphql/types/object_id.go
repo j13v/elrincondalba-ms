@@ -1,10 +1,9 @@
 package types
 
 import (
-	"fmt"
-
 	"github.com/graphql-go/graphql"
 	"github.com/graphql-go/graphql/language/ast"
+	"github.com/j13v/elrincondalba-ms/graphql/utils"
 	"github.com/mongodb/mongo-go-driver/bson/primitive"
 )
 
@@ -18,15 +17,20 @@ var ObjectID = graphql.NewScalar(graphql.ScalarConfig{
 		"a 3-byte counter, starting with a random value.",
 	Serialize: func(value interface{}) interface{} {
 		if oid, ok := value.(primitive.ObjectID); ok {
-			return oid
+			hash, err := utils.HexToBase58(oid.Hex())
+			if err != nil {
+				return err
+			}
+			return hash
 		}
 		return nil
 	},
 	ParseValue: func(value interface{}) interface{} {
-		if v, ok := value.(primitive.ObjectID); ok {
-			return v.Hex()
+		oid, err := primitive.ObjectIDFromHex(utils.Base58ToHex(value.(string)))
+		if err != nil {
+			return err
 		}
-		return fmt.Sprintf("%v", value)
+		return oid
 	},
 	ParseLiteral: func(valueAST ast.Value) interface{} {
 		switch valueAST := valueAST.(type) {

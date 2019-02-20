@@ -25,8 +25,6 @@ func NewModelStock(db *mongo.Database, modelArticle *ModelArticle) *ModelStock {
 	}
 
 	model.ensureIndex()
-	model.ensureAvailableStockView()
-
 	return model
 }
 
@@ -74,10 +72,21 @@ func (model *ModelStock) FindById(id interface{}) (interface{}, error) {
 	return stock, err
 }
 
-func (model *ModelStock) FindByArticle(article interface{}) (interface{}, error) {
-	collection := model.collection.Database().Collection("availableStock")
+func (model *ModelStock) FindAvailableByArticle(article interface{}) (interface{}, error) {
 	ctx := context.Background()
-	cursor, err := collection.Find(ctx, bson.M{"article": article.(primitive.ObjectID)})
+	cursor, err := model.collection.Aggregate(ctx,
+		combinePipeline(
+			bson.A{
+				bson.M{
+					"$match": bson.M{
+						"article": bson.M{"$eq": article.(primitive.ObjectID)},
+					},
+				},
+			},
+			pipelineStockOrder,
+			pipelineStockOrderAvailable,
+			pipelineStockArticleGroup))
+
 	if err != nil {
 		log.Fatal(err)
 		return nil, err
@@ -86,21 +95,44 @@ func (model *ModelStock) FindByArticle(article interface{}) (interface{}, error)
 	data := []defs.StockArticle{}
 	for cursor.Next(ctx) {
 		stock := &defs.StockArticle{}
-		p := bson.M{}
-		if err = cursor.Decode(&p); err != nil {
+		if err = cursor.Decode(&stock); err != nil {
 			log.Fatal(err)
 			return nil, err
 		}
-		refs := p["refs"].(bson.A)
-		for _, item := range refs {
-			stock.Refs = append(stock.Refs, item.(primitive.ObjectID))
-		}
-
-		stock.Size = p["size"].(string)
-		stock.Count = p["count"].(int32)
 		data = append(data, *stock)
 	}
+	return data, err
+}
 
+func (model *ModelStock) FindByArticle(article interface{}) (interface{}, error) {
+	ctx := context.Background()
+	cursor, err := model.collection.Aggregate(ctx,
+		combinePipeline(
+			bson.A{
+				bson.M{
+					"$match": bson.M{
+						"article": bson.M{"$eq": article.(primitive.ObjectID)},
+					},
+				},
+			},
+			pipelineStockOrder,
+			pipelineStockOrderArticleGroup))
+
+	if err != nil {
+		log.Fatal(err)
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+	// TODO make function that group this array result
+	data := []defs.StockOrderArticle{}
+	for cursor.Next(ctx) {
+		stock := &defs.StockOrderArticle{}
+		if err = cursor.Decode(&stock); err != nil {
+			log.Fatal(err)
+			return nil, err
+		}
+		data = append(data, *stock)
+	}
 	return data, err
 }
 
@@ -150,59 +182,32 @@ func (model *ModelStock) ensureIndex() error {
 	return err
 }
 
-// VIEWS
+// "_id": {
+// 	"article": "$article",
+// 	"size":    "$size",
+//  },
+//  "count": {"$sum": 1},
+//  "refs": {"$push": "$_id"},
 
-func (model *ModelStock) ensureAvailableStockView() {
-	db := model.collection.Database()
-	db.RunCommand(context.Background(), bson.M{
-		"create": "availableStock",
-		"viewOn": model.collection.Name(),
-		"pipeline": bson.A{
-			bson.M{
-				"$lookup": bson.M{
-					"from":         "order",
-					"localField":   "_id",
-					"foreignField": "stock",
-					"as":           "order",
-				},
-			},
-			bson.M{
-				"$unwind": bson.M{
-					"path": "$order",
-					"preserveNullAndEmptyArrays": true,
-				},
-			},
-			bson.M{
-				"$match": bson.M{
-					"$or": bson.A{
-						bson.M{"order": bson.M{"$exists": false}},
-						bson.M{"order.state": bson.M{"$eq": defs.ORDER_STATUS_CANCELLED}},
-					},
-				},
-			},
-			bson.M{
-				"$group": bson.M{
-					"_id": bson.M{
-						"article": "$article",
-						"size":    "$size",
-					},
-					"refs":  bson.M{"$push": "$_id"},
-					"count": bson.M{"$sum": 1},
-				},
-			},
-			bson.M{
-				"$project": bson.M{
-					"article": "$_id.article",
-					"size":    "$_id.size",
-					"_id":     0,
-					"refs":    1,
-					"count":   1,
-				},
-			},
-		},
-	})
-}
-
+// bson.M{
+// 	"$group": bson.M{
+// 		"_id": bson.M{
+// 			"article": "$article",
+// 			"size":    "$size",
+// 		},
+// 		"refs":  bson.M{"$push": "$_id"},
+// 		"count": bson.M{"$sum": 1},
+// 	},
+// },
+// bson.M{
+// 	"$project": bson.M{
+// 		"article": "$_id.article",
+// 		"size":    "$_id.size",
+// 		"_id":     0,
+// 		"refs":    1,
+// 		"count":   1,
+// 	},
+// },
 // bson.M{
 // 	"$group": bson.M{
 // 		"_id": bson.M{

@@ -1,4 +1,4 @@
-package queries
+package mutations
 
 import (
 	"crypto/hmac"
@@ -11,15 +11,15 @@ import (
 	"github.com/graphql-go/graphql"
 )
 
-var QueryAuth = graphql.Fields{
-	"getAuthToken": &graphql.Field{
+var MutationAuth = graphql.Fields{
+	"getAccessToken": &graphql.Field{
 		Type: graphql.String,
 		Args: graphql.FieldConfigArgument{
 			"email": &graphql.ArgumentConfig{
-				Type: graphql.String,
+				Type: graphql.NewNonNull(graphql.String),
 			},
 			"signature": &graphql.ArgumentConfig{
-				Type: graphql.String,
+				Type: graphql.NewNonNull(graphql.String),
 			},
 		},
 		Description: "List catalog",

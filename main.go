@@ -13,6 +13,7 @@ import (
 	"github.com/j13v/elrincondalba-ms/graphql"
 	decs "github.com/j13v/elrincondalba-ms/graphql/decorators"
 	"github.com/j13v/elrincondalba-ms/graphql/schema"
+	"github.com/j13v/elrincondalba-ms/graphql/utils"
 	"github.com/j13v/elrincondalba-ms/logger"
 	"github.com/j13v/elrincondalba-ms/mongodb"
 	"github.com/mongodb/mongo-go-driver/bson/primitive"
@@ -80,12 +81,13 @@ func main() {
 
 	ctx = context.Background()
 	ctx = decs.ContextRepoApply(repo)(ctx)
+	ctx = decs.ContextAuthApply()(ctx)
 
 	rtr := mux.NewRouter()
-	rtr.HandleFunc("/images/{image:[a-z0-9]+}", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	rtr.HandleFunc("/images/{image:[A-Za-z0-9]+}", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		params := mux.Vars(r)
 		image := params["image"]
-		oid, err := primitive.ObjectIDFromHex(image)
+		oid, err := primitive.ObjectIDFromHex(utils.Base58ToHex(image))
 		if err != nil {
 			panic(err)
 		}

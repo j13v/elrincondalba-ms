@@ -7,20 +7,41 @@ import (
 	"reflect"
 	"strings"
 
+	"github.com/btcsuite/btcutil/base58"
 	"github.com/graphql-go/graphql"
 	"github.com/graphql-go/relay"
 	"github.com/j13v/elrincondalba-ms/mongodb/helpers"
 )
 
-func HexToBase64(strHex string) (string, error) {
+func HexToByte(strHex string) ([]byte, error) {
 	src := []byte(strHex)
 
 	dst := make([]byte, hex.DecodedLen(len(src)))
 	_, err := hex.Decode(dst, src)
 	if err != nil {
+		return nil, err
+	}
+	return dst, nil
+}
+
+func HexToBase64(strHex string) (string, error) {
+	dst, err := HexToByte(strHex)
+	if err != nil {
 		return "", err
 	}
 	return base64.StdEncoding.EncodeToString(dst), nil
+}
+
+func HexToBase58(strHex string) (string, error) {
+	dst, err := HexToByte(strHex)
+	if err != nil {
+		return "", err
+	}
+	return base58.Encode(dst), nil
+}
+
+func Base58ToHex(strBase58 string) string {
+	return hex.EncodeToString(base58.Decode(strBase58))
 }
 
 type ConnectionSliceMetadata struct {
