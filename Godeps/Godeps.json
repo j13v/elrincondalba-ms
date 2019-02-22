@@ -7,9 +7,19 @@
 	],
 	"Deps": [
 		{
+			"ImportPath": "github.com/btcsuite/btcutil/base58",
+			"Comment": "BTCUTIL_0_5_0-85-g4c204d6",
+			"Rev": "4c204d6978034c001714728401fcd63060d568b4"
+		},
+		{
 			"ImportPath": "github.com/corpix/uarand",
 			"Comment": "v0.0.0",
 			"Rev": "37c9140f52f6bf4998ff7617c456d554d6a2dc2f"
+		},
+		{
+			"ImportPath": "github.com/dgrijalva/jwt-go",
+			"Comment": "v3.2.0",
+			"Rev": "06ea1031745cb8b3dab3f6a236daf2b0aa468b7e"
 		},
 		{
 			"ImportPath": "github.com/functionalfoundry/graphqlws",
@@ -125,6 +135,10 @@
 		{
 			"ImportPath": "github.com/mgutz/ansi",
 			"Rev": "9520e82c474b0a04dd04f8a40959027271bab992"
+		},
+		{
+			"ImportPath": "github.com/mitchellh/mapstructure",
+			"Rev": "bb74f1db0675b241733089d5a1faa5dd8b0ef57b"
 		},
 		{
 			"ImportPath": "github.com/mongodb/mongo-go-driver/bson",
