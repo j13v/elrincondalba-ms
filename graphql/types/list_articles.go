@@ -43,7 +43,7 @@ var FieldListArticles = &graphql.Field{
 			Type: graphql.NewList(graphql.String),
 		},
 		"priceRange": &graphql.ArgumentConfig{
-			Type: graphql.NewList(graphql.String),
+			Type: graphql.NewList(graphql.Float),
 		},
 		"sizes": &graphql.ArgumentConfig{
 			Type: graphql.NewList(graphql.String),
