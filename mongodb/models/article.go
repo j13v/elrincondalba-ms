@@ -76,7 +76,49 @@ func (model *ModelArticle) FindById(id primitive.ObjectID) (interface{}, error) 
 	return article, err
 }
 
+func castArrayString(input interface{}) (out bson.A) {
+	value := input.([]interface{})
+	for _, v := range value {
+		// using a type assertion, convert v to a string
+		out = append(out, v.(string))
+	}
+	return out
+}
+
+func castArrayFloat(input interface{}) (out []float64) {
+	value := input.([]interface{})
+	for _, v := range value {
+		out = append(out, v.(float64))
+	}
+	return out
+}
+
+func NewFindFilterSliceFromArgs(args *map[string]interface{}) *map[string]interface{} {
+
+	/* args = &map[string]interface{}{
+		"category": bson.M{
+			"$in": castArrayString((*args)["categories"]),
+		},
+		"price": bson.M{
+			"$gte": price[0],
+			"$lte": price[1],
+		},
+	} */
+	(*args)["category"] = bson.M{
+		"$in": castArrayString((*args)["categories"]),
+	}
+	delete(*args, "categories")
+	price := castArrayFloat((*args)["priceRange"])
+	(*args)["price"] = bson.M{
+		"$gte": price[0],
+		"$lte": price[1],
+	}
+	delete(*args, "priceRange")
+	return args
+}
+
 func (model *ModelArticle) FindSlice(args *map[string]interface{}) ([]interface{}, *oprs.FindSliceMetadata, error) {
+	args = NewFindFilterSliceFromArgs(args)
 	data, meta, err := oprs.FindSlice(model.collection, context.Background(), args)
 	if err != nil {
 		log.Fatal(err)
