@@ -1,6 +1,8 @@
 package types
 
 import (
+	"fmt"
+
 	"github.com/graphql-go/graphql"
 	"github.com/graphql-go/relay"
 	decs "github.com/j13v/elrincondalba-ms/graphql/decorators"
@@ -36,9 +38,21 @@ FieldListArticles
 var FieldListArticles = &graphql.Field{
 	Type:        TypeArticleConnection,
 	Description: "Get articles list",
-	Args:        relay.ConnectionArgs,
+	Args: relay.NewConnectionArgs(graphql.FieldConfigArgument{
+		"categories": &graphql.ArgumentConfig{
+			Type: graphql.NewList(graphql.String),
+		},
+		"priceRange": &graphql.ArgumentConfig{
+			Type: graphql.NewList(graphql.String),
+		},
+		"sizes": &graphql.ArgumentConfig{
+			Type: graphql.NewList(graphql.String),
+		},
+	}),
 	Resolve: decs.ContextRepoConsumer(func(params graphql.ResolveParams, model mongodb.Repo) (interface{}, error) {
+
 		connArgs := relay.NewConnectionArguments(params.Args)
+		fmt.Printf("Args %d", connArgs)
 		articles, meta, err := model.Article.FindSlice(&params.Args)
 		return utils.ConnectionFromArraySlice(articles, connArgs, meta), err
 	}),
