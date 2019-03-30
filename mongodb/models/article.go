@@ -83,7 +83,6 @@ func (model *ModelArticle) UploadImage(filename string, source io.Reader) (primi
 	return id, err
 }
 func (model *ModelArticle) FindOne(args *map[string]interface{}, opts ...*options.FindOneOptions) (interface{}, error) {
-	fmt.Printf("%x", args)
 	article := defs.Article{}
 	cursor, err := oprs.FindOne(model.collection, context.Background(), args, opts...)
 	if err != nil {
