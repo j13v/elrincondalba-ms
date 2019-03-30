@@ -10,11 +10,11 @@ var TypeArticleStock = graphql.NewObject(
 			"size": &graphql.Field{
 				Type: graphql.String,
 			},
-			"count": &graphql.Field{
-				Type: graphql.Int,
+			"id": &graphql.Field{
+				Type: ObjectID,
 			},
-			"refs": &graphql.Field{
-				Type: graphql.NewList(ObjectID),
+			"createdAt": &graphql.Field{
+				Type: graphql.Int,
 			},
 		},
 	},
