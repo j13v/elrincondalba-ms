@@ -59,8 +59,8 @@ var FieldArticleStock = &graphql.Field{
 	},
 	Description: "Get article stock list",
 	Resolve: decs.ContextAuthIsAdmin(decs.ContextRepoConsumer(func(params graphql.ResolveParams, repo mongodb.Repo) (interface{}, error) {
-		stock, err := repo.Stock.FindByArticle(params.Args["id"])
-		return stock, err
+		// stock, err := repo.Article.FindByArticle(params.Args["id"], false)
+		return nil, nil
 		// return claims, nil
 	})),
 	// Resolve: decs.ContextRepoConsumer(

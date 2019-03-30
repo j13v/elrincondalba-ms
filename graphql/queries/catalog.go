@@ -11,8 +11,9 @@ var QueryCatalog = graphql.Fields{
 		Type:        graphql.NewList(graphql.String),
 		Description: "List catalog",
 		Resolve: decs.ContextRepoConsumer(func(params graphql.ResolveParams, repo mongodb.Repo) (interface{}, error) {
-			articles, _, err := repo.Stock.FindSlice(&params.Args)
-			return articles, err
+			// articles, _, err := repo.Stock.FindSlice(&params.Args)
+			// return articles, err
+			return nil, nil
 		}),
 	},
 }

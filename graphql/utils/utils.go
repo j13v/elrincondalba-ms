@@ -97,11 +97,27 @@ func ternaryMin(a, b, c int) int {
 	return min(min(a, b), c)
 }
 
+func InterfaceSlice(slice interface{}) []interface{} {
+	s := reflect.ValueOf(slice)
+	if s.Kind() != reflect.Slice {
+		panic("InterfaceSlice() given a non-slice type")
+	}
+
+	ret := make([]interface{}, s.Len())
+
+	for i := 0; i < s.Len(); i++ {
+		ret[i] = s.Index(i).Interface()
+	}
+
+	return ret
+}
+
 func ConnectionFromArraySlice(
-	arraySlice []interface{},
+	mixed interface{},
 	args relay.ConnectionArguments,
 	meta interface{},
 ) *Connection {
+	arraySlice := InterfaceSlice(mixed)
 	byteData, _ := json.Marshal(meta)
 	metaSlice := ConnectionSliceMetadata{}
 	json.Unmarshal(byteData, &metaSlice)

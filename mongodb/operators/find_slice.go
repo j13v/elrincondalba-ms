@@ -23,7 +23,7 @@ func FindSlice(coll *mongo.Collection, ctx context.Context, args *map[string]int
 	if err != nil {
 		return nil, nil, err
 	}
-	count, err := coll.Count(ctx, bson.D{})
+	count, err := coll.Count(ctx, args)
 	if err != nil {
 		return nil, nil, err
 	}

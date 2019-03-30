@@ -13,18 +13,17 @@ Stock definition
 */
 type Stock struct {
 	ID        primitive.ObjectID `bson:"_id,omitempty" json:"id,omitempty"`
-	Article   primitive.ObjectID `bson:"article,omitempty" json:"article"`
 	Size      string             `bson:"size" json:"size"`
 	CreatedAt int32              `bson:"createdAt" json:"createdAt"`
 }
 
-func NewStock(article primitive.ObjectID, size string) (*Stock, error) {
+func NewStock(size string) (*Stock, error) {
 	if size == "" {
 		return nil, errors.New("Empty size in stock creation")
 	}
 	return &Stock{
-		Article:   article,
-		Size:      strings.ToUpper(size),
+		ID:        primitive.NewObjectID(),
+		Size:      strings.ToLower(size),
 		CreatedAt: int32(time.Now().Unix()),
 	}, nil
 }

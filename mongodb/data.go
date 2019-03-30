@@ -128,9 +128,9 @@ func InitData(db *mongo.Database) {
 		}
 	}
 
-	for i := 0; i <= len(articles)*30; i++ {
+	for i := 0; i <= len(articles)*3; i++ {
 		article := articles[rand.Intn(len(articles))]
-		stockItem, err := repo.Stock.Create(article.ID, sizes[rand.Intn(len(sizes))])
+		stockItem, err := repo.Article.AddStock(article.ID, sizes[rand.Intn(len(sizes))])
 
 		if err != nil {
 			logger.WithFields(logrus.Fields{
@@ -138,26 +138,6 @@ func InitData(db *mongo.Database) {
 			}).Warn("Failed to create stock")
 		} else {
 			logger.WithFields(logrus.Fields{
-				"id":      stockItem.ID.Hex(),
-				"size":    stockItem.Size,
-				"article": article.ID,
-			}).Info("Created stock item")
-
-			stock = append(stock, *stockItem)
-		}
-	}
-
-	for i := 0; i <= len(articles)*10; i++ {
-		article := articles[rand.Intn(len(articles))]
-		stockItem, err := repo.Stock.Create(article.ID, sizes[rand.Intn(len(sizes))])
-
-		if err != nil {
-			logger.WithFields(logrus.Fields{
-				"err": err.Error(),
-			}).Warn("Failed to create stock")
-		} else {
-			logger.WithFields(logrus.Fields{
-				"id":      stockItem.ID.Hex(),
 				"size":    stockItem.Size,
 				"article": article.ID,
 			}).Info("Created stock item")

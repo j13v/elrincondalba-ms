@@ -164,3 +164,18 @@ func GetObjectIDFromHex(hex string) *primitive.ObjectID {
 	oid, _ := primitive.ObjectIDFromHex(hex)
 	return &oid
 }
+
+func CombineBsonArrays(args ...bson.A) bson.A {
+	res := bson.A{}
+	for _, stage := range args {
+		res = append(res, stage...)
+	}
+	return res
+}
+
+func AssertBsonArray(assertion bool, arr bson.A) bson.A {
+	if assertion {
+		return arr
+	}
+	return bson.A{}
+}

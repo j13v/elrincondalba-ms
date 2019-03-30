@@ -5,14 +5,23 @@ import (
 	"github.com/mongodb/mongo-go-driver/bson"
 )
 
-func combinePipeline(args ...bson.A) bson.A {
-	pipeline := bson.A{}
-
+func combineBsonArrays(args ...bson.A) bson.A {
+	res := bson.A{}
 	for _, stage := range args {
-		pipeline = append(pipeline, stage...)
+		res = append(res, stage...)
 	}
+	return res
+}
 
-	return pipeline
+func combinePipeline(args ...bson.A) bson.A {
+	return combineBsonArrays(args...)
+}
+
+func assertPipeline(assertion bool, pipeline bson.A) bson.A {
+	if assertion {
+		return pipeline
+	}
+	return bson.A{}
 }
 
 var pipelineStockOrder = bson.A{

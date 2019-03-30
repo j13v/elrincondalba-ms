@@ -7,11 +7,28 @@ import (
 )
 
 var FieldListSizes = &graphql.Field{
-	Type:        graphql.NewList(graphql.String),
+	Type: graphql.NewList(graphql.NewObject(
+		graphql.ObjectConfig{
+			Name: "Pepesito",
+			Fields: graphql.Fields{
+				"name": &graphql.Field{
+					Type: graphql.String,
+				},
+				"count": &graphql.Field{
+					Type: graphql.Int,
+				},
+			},
+		},
+	)),
+	Args: graphql.FieldConfigArgument{
+		"categories": &graphql.ArgumentConfig{
+			Type: graphql.NewList(graphql.String),
+		},
+	},
 	Description: "List the sizes",
 
 	Resolve: decs.ContextRepoConsumer(func(params graphql.ResolveParams, repo mongodb.Repo) (interface{}, error) {
-		sizes, err := repo.Stock.GetSizes()
+		sizes, err := repo.Article.GetSizes(&params.Args)
 		return sizes, err
 	}),
 }

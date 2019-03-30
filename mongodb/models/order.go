@@ -18,17 +18,17 @@ ModelOrder asd
 */
 type ModelOrder struct {
 	collection *mongo.Collection
-	stock      *ModelStock
+	article    *ModelArticle
 	user       *ModelUser
 }
 
 /*
 NewOrderModel
 */
-func NewModelOrder(db *mongo.Database, modelStock *ModelStock, modelUser *ModelUser) *ModelOrder {
+func NewModelOrder(db *mongo.Database, modelArticle *ModelArticle, modelUser *ModelUser) *ModelOrder {
 	return &ModelOrder{
 		collection: db.Collection("order"),
-		stock:      modelStock,
+		article:    modelArticle,
 		user:       modelUser,
 	}
 }
@@ -38,7 +38,7 @@ Create
 */
 func (model *ModelOrder) Create(stock primitive.ObjectID, user primitive.ObjectID, notes string) (*defs.Order, error) {
 	// Check if article exists then if not raise an error
-	if _, err := model.stock.FindById(stock); err != nil {
+	if _, err := model.article.FindStockById(stock); err != nil {
 		return nil, fmt.Errorf("No stock found by id %s", stock)
 	}
 	if _, err := model.user.FindById(user); err != nil {
