@@ -7,6 +7,25 @@ import (
 	"github.com/mongodb/mongo-go-driver/bson/primitive"
 )
 
+func serializeObjectID(value interface{}) interface{} {
+	if oid, ok := value.(primitive.ObjectID); ok {
+		hash, err := utils.HexToBase58(oid.Hex())
+		if err != nil {
+			return err
+		}
+		return hash
+	}
+	return nil
+}
+
+func unserializeObjectID(value interface{}) interface{} {
+	oid, err := primitive.ObjectIDFromHex(utils.Base58ToHex(value.(string)))
+	if err != nil {
+		return err
+	}
+	return oid
+}
+
 var ObjectID = graphql.NewScalar(graphql.ScalarConfig{
 	Name: "ObjectID",
 	Description: "The `ID` scalar type represents a unique identifier, often used to " +
@@ -15,27 +34,12 @@ var ObjectID = graphql.NewScalar(graphql.ScalarConfig{
 		"a 4-byte value representing the seconds since the Unix epoch" +
 		"a 5-byte random value, and" +
 		"a 3-byte counter, starting with a random value.",
-	Serialize: func(value interface{}) interface{} {
-		if oid, ok := value.(primitive.ObjectID); ok {
-			hash, err := utils.HexToBase58(oid.Hex())
-			if err != nil {
-				return err
-			}
-			return hash
-		}
-		return nil
-	},
-	ParseValue: func(value interface{}) interface{} {
-		oid, err := primitive.ObjectIDFromHex(utils.Base58ToHex(value.(string)))
-		if err != nil {
-			return err
-		}
-		return oid
-	},
+	Serialize:  serializeObjectID,
+	ParseValue: unserializeObjectID,
 	ParseLiteral: func(valueAST ast.Value) interface{} {
 		switch valueAST := valueAST.(type) {
 		case *ast.StringValue:
-			return valueAST.Value
+			return unserializeObjectID(valueAST.Value)
 		}
 		return nil
 	},

@@ -11,7 +11,7 @@ var FieldGetArticle = &graphql.Field{
 	Description: "Get article by id",
 	Args: graphql.FieldConfigArgument{
 		"id": &graphql.ArgumentConfig{
-			Type: ObjectID,
+			Type: graphql.NewNonNull(ObjectID),
 		},
 	},
 	Resolve: decs.ContextRepoConsumer(func(params graphql.ResolveParams, model mongodb.Repo) (interface{}, error) {
