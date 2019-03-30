@@ -3,9 +3,10 @@ package definitions
 import "github.com/mongodb/mongo-go-driver/bson/primitive"
 
 type StockArticle struct {
-	Refs  []primitive.ObjectID `bson:"refs,omitempty" json:"refs,omitempty"`
-	Size  string               `bson:"size" json:"size"`
-	Count int32                `bson:"count" json:"count"`
+	ID        primitive.ObjectID `bson:"_id,omitempty" json:"id,omitempty"`
+	Size      string             `bson:"size" json:"size"`
+	CreatedAt int32              `bson:"createdAt" json:"createdAt"`
+	Article   *Article           `bson:"article" json:"article"`
 }
 
 type StockOrderArticleItem struct {

@@ -2,7 +2,6 @@ package models
 
 import (
 	"context"
-	"fmt"
 	"io"
 	"log"
 	"time"
@@ -101,25 +100,68 @@ func (model *ModelArticle) FindById(id primitive.ObjectID) (interface{}, error) 
 }
 
 func (model *ModelArticle) FindStockById(stockId primitive.ObjectID) (interface{}, error) {
-	cursor, err := oprs.FindOne(model.collection, context.Background(), &map[string]interface{}{"stock._id": stockId}, &options.FindOneOptions{
-		Projection: bson.M{"stock.$": 1},
-	})
-	if err != nil {
-		return nil, err
-	}
-	res := struct {
-		Stock []defs.Stock `bson: "stock"`
-	}{}
+	// cursor, err := oprs.FindOne(model.collection, context.Background(), &map[string]interface{}{"stock._id": stockId}, &options.FindOneOptions{
+	// 	Projection: bson.M{"stock.$": 1},
+	// })
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// res := defs.Article{}
 
-	err = cursor.Decode(&res)
+	// err = cursor.Decode(&res)
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// if res.Stock == nil || len(res.Stock) == 0 {
+	// 	return nil, fmt.Errorf("Stock not found with id %v", stockId)
+	// }
+	// fmt.Print("JORGE %v \n", res.)
+	// stock := res.Stock[0]
+	// return stock, err
+	pipeline := bson.A{
+		bson.M{
+			"$unwind": bson.M{
+				"path": "$stock",
+			},
+		},
+		bson.M{
+			"$replaceRoot": bson.M{
+				"newRoot": bson.M{"$mergeObjects": bson.A{
+					"$stock",
+					bson.M{
+						"article": "$$ROOT",
+					},
+				}},
+			},
+		},
+		bson.M{
+			"$match": bson.M{
+				"_id": stockId,
+			},
+		},
+		bson.M{
+			"$project": bson.M{
+				"article.stock": false,
+			},
+		},
+	}
+
+	ctx := context.Background()
+	cursor, err := model.collection.Aggregate(ctx, pipeline)
+
 	if err != nil {
+
 		return nil, err
 	}
-	if res.Stock == nil || len(res.Stock) == 0 {
-		return nil, fmt.Errorf("Stock not found with id %v", stockId)
+	defer cursor.Close(ctx)
+	stockArticle := defs.StockArticle{}
+	cursor.Next(ctx)
+	if err = cursor.Decode(&stockArticle); err != nil {
+		log.Fatal(err)
+		return nil, err
 	}
-	stock := res.Stock[0]
-	return stock, err
+
+	return stockArticle, err
 }
 
 func (model *ModelArticle) FindSlice(args *map[string]interface{}) (

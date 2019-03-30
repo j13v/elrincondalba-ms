@@ -81,7 +81,6 @@ func (model *ModelOrder) FindById(id primitive.ObjectID) (interface{}, error) {
 }
 
 func (model *ModelOrder) FindSlice(args *map[string]interface{}) ([]interface{}, *oprs.FindSliceMetadata, error) {
-
 	data, meta, err := oprs.FindSlice(model.collection, context.Background(), args)
 	if err != nil {
 		log.Fatal(err)
