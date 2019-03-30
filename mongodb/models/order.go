@@ -111,88 +111,88 @@ func (model *ModelOrder) GetState(id primitive.ObjectID) (int8, error) {
 	return orderStruct.State, nil
 }
 
-func (model *ModelOrder) Purchase(id primitive.ObjectID, paymentMethod int8, purchaseRef string) error {
+func (model *ModelOrder) Purchase(id primitive.ObjectID, paymentMethod int8, purchaseRef string) (*defs.Order, error) {
 	order, err := model.findById(id)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	if err := order.Purchase(paymentMethod, purchaseRef); err != nil {
-		return err
+		return nil, err
 	}
 	if err := model.Sync(order); err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+	return order, nil
 }
 
-func (model *ModelOrder) Prepare(id primitive.ObjectID) error {
+func (model *ModelOrder) Prepare(id primitive.ObjectID) (*defs.Order, error) {
 	order, err := model.findById(id)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	if err := order.Prepare(); err != nil {
-		return err
+		return nil, err
 	}
 	if err := model.Sync(order); err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+	return order, nil
 }
 
-func (model *ModelOrder) Ship(id primitive.ObjectID, trackingRef string) error {
+func (model *ModelOrder) Ship(id primitive.ObjectID, trackingRef string) (*defs.Order, error) {
 	order, err := model.findById(id)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	if err := order.Ship(trackingRef); err != nil {
-		return err
+		return nil, err
 	}
 	if err := model.Sync(order); err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+	return order, nil
 }
 
-func (model *ModelOrder) ConfirmReceived(id primitive.ObjectID) error {
+func (model *ModelOrder) ConfirmReceived(id primitive.ObjectID) (*defs.Order, error) {
 	order, err := model.findById(id)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	if err := order.ConfirmReceived(); err != nil {
-		return err
+		return nil, err
 	}
 	if err := model.Sync(order); err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+	return order, nil
 }
 
-func (model *ModelOrder) Cancel(id primitive.ObjectID) error {
+func (model *ModelOrder) Cancel(id primitive.ObjectID) (*defs.Order, error) {
 	order, err := model.findById(id)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	if err := order.Cancel(); err != nil {
-		return err
+		return nil, err
 	}
 	if err := model.Sync(order); err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+	return order, nil
 }
 
-func (model *ModelOrder) UpdateState(id primitive.ObjectID, state int8) error {
+func (model *ModelOrder) UpdateState(id primitive.ObjectID, state int8) (*defs.Order, error) {
 	order, err := model.findById(id)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	if err := order.UpdateState(state); err != nil {
-		return err
+		return nil, err
 	}
 	if err := model.Sync(order); err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+	return order, nil
 }
 
 // Purchase(paymentMethod int8, purchaseRef string) error {
