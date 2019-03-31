@@ -13,7 +13,7 @@ func combineBsonArrays(args ...bson.A) bson.A {
 	return res
 }
 
-func combinePipeline(args ...bson.A) bson.A {
+func combinePipelines(args ...bson.A) bson.A {
 	return combineBsonArrays(args...)
 }
 

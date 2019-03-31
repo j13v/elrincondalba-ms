@@ -5,7 +5,7 @@ import (
 	"io"
 	"log"
 	"time"
-
+	
 	defs "github.com/j13v/elrincondalba-ms/definitions"
 	oprs "github.com/j13v/elrincondalba-ms/mongodb/operators"
 	"github.com/mongodb/mongo-go-driver/bson"
@@ -213,11 +213,11 @@ type DistincItem struct {
 }
 
 func (model *ModelArticle) DistincUsingFilters(path interface{}, filter ...interface{}) ([]DistincItem, error) {
-	if len(filter) == 0 {
+	if len(filter) == 0 || filter[0] == nil {
 		filter = []interface{}{1}
 	}
 
-	pipeline := combinePipeline(createStockEntriesPipeline(path, filter[0]), bson.A{
+	pipeline := combinePipelines(createStockEntriesPipeline(path, filter[0]), bson.A{
 		bson.M{
 			"$project": bson.M{
 				"name":  1,
@@ -269,16 +269,20 @@ type MaxMinItem = struct {
 
 func (model *ModelArticle) GetPriceRange(args *map[string]interface{}) (*MaxMinItem, error) {
 	filterArgs := NewArticleFiltersFromArgs(args)
-	pipeline := bson.A{
+	pipeline := combinePipelines(bson.A{
 		bson.M{
 			"$unwind": bson.M{
 				"path": "$stock",
 				"preserveNullAndEmptyArrays": true,
 			},
 		},
+	},
+	assertPipeline(filterArgs != nil, bson.A{
 		bson.M{
-			"$match": assertDocument(filterArgs != nil, filterArgs),
+			"$match": filterArgs,
 		},
+	}),
+	bson.A{
 		bson.M{
 			"$group": bson.M{
 				"_id": nil,
@@ -286,7 +290,7 @@ func (model *ModelArticle) GetPriceRange(args *map[string]interface{}) (*MaxMinI
 				"min": bson.M{"$min": "$price"},
 			},
 		},
-	}
+	})
 
 	ctx := context.Background()
 	cursor, err := model.collection.Aggregate(ctx, pipeline)
@@ -318,14 +322,22 @@ func castArrayFloat(input interface{}) (out []float64) {
 	return out
 }
 
-func NewArticleDistinctFiltersFromArgs(args *map[string]interface{}, omitted ...string) bson.M {
+func NewArticleDistinctFiltersFromArgs(args *map[string]interface{}, omitted ...string) interface{} {
 	conds := bson.A{}
 	for argName, argValue := range *args {
 		switch argName {
 		case "sizes":
-			conds = append(conds, bson.M{"$in": bson.A{"$$this.stock.size", argValue}})
+			bsonArr := castArrayString(argValue)
+			if len(bsonArr) == 0 {
+				continue
+			}
+			conds = append(conds, bson.M{"$in": bson.A{"$$this.stock.size", bsonArr}})
 		case "categories":
-			conds = append(conds, bson.M{"$in": bson.A{"$$this.category", argValue}})
+			bsonArr := castArrayString(argValue)
+			if len(bsonArr) == 0 {
+				continue
+			}
+			conds = append(conds, bson.M{"$in": bson.A{"$$this.category", bsonArr}})
 		case "priceRange":
 			priceRange := castArrayFloat(argValue)
 			if len(priceRange) > 0 {
@@ -342,12 +354,12 @@ func NewArticleDistinctFiltersFromArgs(args *map[string]interface{}, omitted ...
 		return nil
 	}
 
-	return bson.M{
+	return &bson.M{
 		"$and": conds,
 	}
 }
 
-func NewArticleFiltersFromArgs(args *map[string]interface{}) bson.M {
+func NewArticleFiltersFromArgs(args *map[string]interface{}) interface{} {
 	conds := bson.M{}
 	if args != nil {
 		for argName, argValue := range *args {
@@ -365,6 +377,9 @@ func NewArticleFiltersFromArgs(args *map[string]interface{}) bson.M {
 				argName = "price"
 				bsonValue := bson.M{}
 				priceRange := castArrayFloat(argValue)
+				if len(priceRange) == 0 {
+					continue
+				}
 				if len(priceRange) > 0 {
 					bsonValue["$gte"] = priceRange[0]
 				}
@@ -389,10 +404,10 @@ func NewArticleFiltersFromArgs(args *map[string]interface{}) bson.M {
 
 		}
 	}
-
+	
 	if len(conds) == 0 {
 		return nil
 	}
 	
-	return conds
+	return &conds
 }
