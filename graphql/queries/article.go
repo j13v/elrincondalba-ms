@@ -6,10 +6,11 @@ import (
 )
 
 var QueryArticle = graphql.Fields{
-	"getArticle":           types.FieldGetArticle,
-	"getArticlePriceRange": types.FieldArticlePriceRange,
-	"listArticles":         types.FieldListArticles,
-	"listArticleStock":     types.FieldArticleStock,
-	"listArticlesRelated":  types.FieldListArticlesRelated,
-	"listSizes":            types.FieldListSizes,
+	"getArticle":            types.FieldGetArticle,
+	"getArticlePriceRange":  types.FieldArticlePriceRange,
+	"listArticles":          types.FieldListArticles,
+	"listArticleStock":      types.FieldArticleStock,
+	"listArticlesRelated":   types.FieldListArticlesRelated,
+	"listArticleSizes":      types.FieldListArticleSizes,
+	"listArticleCategories": types.FieldListArticleCategories,
 }

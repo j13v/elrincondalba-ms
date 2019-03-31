@@ -6,29 +6,19 @@ import (
 	"github.com/j13v/elrincondalba-ms/mongodb"
 )
 
-var FieldListSizes = &graphql.Field{
-	Type: graphql.NewList(graphql.NewObject(
-		graphql.ObjectConfig{
-			Name: "Pepesito",
-			Fields: graphql.Fields{
-				"name": &graphql.Field{
-					Type: graphql.String,
-				},
-				"count": &graphql.Field{
-					Type: graphql.Int,
-				},
-			},
-		},
-	)),
+var FieldArticlePriceRange = &graphql.Field{
+	Type:        graphql.NewList(graphql.Float),
+	Description: "Get min max price",
 	Args: graphql.FieldConfigArgument{
+		"sizes": &graphql.ArgumentConfig{
+			Type: graphql.NewList(graphql.String),
+		},
 		"categories": &graphql.ArgumentConfig{
 			Type: graphql.NewList(graphql.String),
 		},
 	},
-	Description: "List the sizes",
-
 	Resolve: decs.ContextRepoConsumer(func(params graphql.ResolveParams, repo mongodb.Repo) (interface{}, error) {
-		sizes, err := repo.Article.GetSizes(&params.Args)
-		return sizes, err
+		rangePrice, err := repo.Article.GetPriceRange(&params.Args)
+		return []float64{rangePrice.Min, rangePrice.Max}, err
 	}),
 }

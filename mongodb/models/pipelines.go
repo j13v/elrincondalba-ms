@@ -24,6 +24,21 @@ func assertPipeline(assertion bool, pipeline bson.A) bson.A {
 	return bson.A{}
 }
 
+func assertDocument(assertion bool, doc bson.M) bson.M {
+	if assertion {
+		return doc
+	}
+	return bson.M{}
+}
+
+func combineDocuments(args ...bson.M) bson.A {
+	res := bson.A{}
+	for _, stage := range args {
+		res = append(res, stage)
+	}
+	return res
+}
+
 var pipelineStockOrder = bson.A{
 	bson.M{
 		"$lookup": bson.M{
@@ -111,4 +126,41 @@ var pipelineStockOrderArticleGroup = bson.A{
 			"count":   1,
 		},
 	},
+}
+
+func createStockEntriesPipeline(path interface{}, filter interface{}) bson.A {
+	return bson.A{
+		bson.M{
+			"$unwind": bson.M{
+				"path": "$stock",
+				"preserveNullAndEmptyArrays": true,
+			},
+		},
+		// Group entries by path
+		bson.M{
+			"$group": bson.M{
+				"_id":     path,
+				"entries": bson.M{"$push": "$$ROOT"},
+			},
+		},
+		// Apply projection filter
+		bson.M{
+			"$project": bson.M{
+				"_id":  0,
+				"name": "$_id",
+				"entries": bson.M{
+					"$filter": bson.M{
+						"input": "$entries",
+						"cond":  filter,
+					},
+				},
+			},
+		},
+		// Omit null
+		bson.M{
+			"$match": bson.M{
+				"name": bson.M{"$ne": nil},
+			},
+		},
+	}
 }

@@ -7,7 +7,6 @@ import (
 	"time"
 
 	defs "github.com/j13v/elrincondalba-ms/definitions"
-	"github.com/j13v/elrincondalba-ms/mongodb/helpers"
 	oprs "github.com/j13v/elrincondalba-ms/mongodb/operators"
 	"github.com/mongodb/mongo-go-driver/bson"
 	"github.com/mongodb/mongo-go-driver/bson/primitive"
@@ -100,24 +99,6 @@ func (model *ModelArticle) FindById(id primitive.ObjectID) (interface{}, error) 
 }
 
 func (model *ModelArticle) FindStockById(stockId primitive.ObjectID) (interface{}, error) {
-	// cursor, err := oprs.FindOne(model.collection, context.Background(), &map[string]interface{}{"stock._id": stockId}, &options.FindOneOptions{
-	// 	Projection: bson.M{"stock.$": 1},
-	// })
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// res := defs.Article{}
-
-	// err = cursor.Decode(&res)
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// if res.Stock == nil || len(res.Stock) == 0 {
-	// 	return nil, fmt.Errorf("Stock not found with id %v", stockId)
-	// }
-	// fmt.Print("JORGE %v \n", res.)
-	// stock := res.Stock[0]
-	// return stock, err
 	pipeline := bson.A{
 		bson.M{
 			"$unwind": bson.M{
@@ -180,30 +161,6 @@ func (model *ModelArticle) FindSlice(args *map[string]interface{}) (
 	return result, meta, err
 }
 
-// func (model *ModelArticle) FindSlice(args *map[string]interface{}) (interfaceSlice []interface{}, meta *oprs.FindSliceMetadata, err error) {
-// 	var bsonData []bson.Raw
-// 	if args, err = NewFindFilterSliceFromArgs(args); err != nil {
-// 		return nil, nil, err
-// 	}
-// 	bsonData, meta, err = oprs.FindSlice(model.collection, context.Background(), args)
-// 	if err != nil {
-// 		return nil, meta, err
-// 	}
-// 	articles := []defs.Article{}
-// 	for _, v := range bsonData {
-// 		article := defs.Article{}
-// 		bson.Unmarshal(v, &article)
-// 		articles = append(articles, article)
-// 	}
-
-// 	interfaceSlice = make([]interface{}, len(articles))
-// 	for i, d := range articles {
-// 		interfaceSlice[i] = d
-// 	}
-
-// 	return interfaceSlice, meta, nil
-// }
-
 func (model *ModelArticle) DeleteArticle(id primitive.ObjectID) error {
 
 	if _, err := model.collection.DeleteOne(
@@ -255,35 +212,24 @@ type DistincItem struct {
 	Count int64  `bson:"count"`
 }
 
-func (model *ModelArticle) DistincUsingFilters(path string, filterPipline bson.A) ([]DistincItem, error) {
-	pipeline := helpers.CombineBsonArrays(bson.A{
+func (model *ModelArticle) DistincUsingFilters(path interface{}, filter ...interface{}) ([]DistincItem, error) {
+	if len(filter) == 0 {
+		filter = []interface{}{1}
+	}
+
+	pipeline := combinePipeline(createStockEntriesPipeline(path, filter[0]), bson.A{
 		bson.M{
-			"$unwind": bson.M{
-				"path": "$stock",
-				"preserveNullAndEmptyArrays": true,
+			"$project": bson.M{
+				"name":  1,
+				"count": bson.M{"$size": "$entries"},
 			},
 		},
 		bson.M{
-			"$group": bson.M{
-				"_id":   path,
-				"stock": bson.M{"$push": "$$ROOT"},
+			"$sort": bson.M{
+				"name": 1,
 			},
 		},
-	},
-		helpers.AssertBsonArray(true, filterPipline),
-		bson.A{
-			bson.M{
-				"$project": bson.M{
-					"name":  path,
-					"count": bson.M{"$size": "$stock"},
-				},
-			},
-			bson.M{
-				"$sort": bson.M{
-					"name": 1,
-				},
-			},
-		})
+	})
 
 	ctx := context.Background()
 	cursor, err := model.collection.Aggregate(ctx, pipeline)
@@ -305,54 +251,34 @@ func (model *ModelArticle) DistincUsingFilters(path string, filterPipline bson.A
 	return data, err
 }
 
-func (model *ModelArticle) GetCategories(args *map[string]interface{}) (interface{}, error) {
-	data, err := model.DistincUsingFilters("$category", assertPipeline((*args)["sizes"] != nil, bson.A{
-		bson.M{
-			"$project": bson.M{
-				"_id":      0,
-				"category": "$_id",
-				"stock": bson.M{
-					"$filter": bson.M{
-						"input": "$stock",
-						"as":    "article",
-						"cond": bson.M{
-							"$and": bson.A{
-								bson.M{"$in": bson.A{"$$article.stock.size", (*args)["sizes"]}},
-							},
-						},
-					},
-				},
-			},
-		},
-	}))
+func (model *ModelArticle) GetCategories(args *map[string]interface{}) ([]DistincItem, error) {
+	data, err := model.DistincUsingFilters("$category", NewArticleDistinctFiltersFromArgs(args))
+
 	return data, err
 }
 
-func (model *ModelArticle) GetSizes(args *map[string]interface{}) (interface{}, error) {
-	data, err := model.DistincUsingFilters("$size", assertPipeline((*args)["categories"] != nil, bson.A{
-		bson.M{
-			"$project": bson.M{
-				"_id":      0,
-				"category": "$_id",
-				"stock": bson.M{
-					"$filter": bson.M{
-						"input": "$stock",
-						"as":    "article",
-						"cond": bson.M{
-							"$and": bson.A{
-								bson.M{"$in": bson.A{"$$article.category", (*args)["categories"]}},
-							},
-						},
-					},
-				},
-			},
-		},
-	}))
+func (model *ModelArticle) GetSizes(args *map[string]interface{}) ([]DistincItem, error) {
+	data, err := model.DistincUsingFilters("$stock.size", NewArticleDistinctFiltersFromArgs(args))
 	return data, err
 }
 
-func (model *ModelArticle) GetPriceRange() (interface{}, error) {
+type MaxMinItem = struct {
+	Min float64 `bson:"min"`
+	Max float64 `bson:"max"`
+}
+
+func (model *ModelArticle) GetPriceRange(args *map[string]interface{}) (*MaxMinItem, error) {
+	filterArgs := NewArticleFiltersFromArgs(args)
 	pipeline := bson.A{
+		bson.M{
+			"$unwind": bson.M{
+				"path": "$stock",
+				"preserveNullAndEmptyArrays": true,
+			},
+		},
+		bson.M{
+			"$match": assertDocument(filterArgs != nil, filterArgs),
+		},
 		bson.M{
 			"$group": bson.M{
 				"_id": nil,
@@ -361,6 +287,7 @@ func (model *ModelArticle) GetPriceRange() (interface{}, error) {
 			},
 		},
 	}
+
 	ctx := context.Background()
 	cursor, err := model.collection.Aggregate(ctx, pipeline)
 	if err != nil {
@@ -369,12 +296,9 @@ func (model *ModelArticle) GetPriceRange() (interface{}, error) {
 	}
 	defer cursor.Close(ctx)
 	cursor.Next(ctx)
-	data := struct {
-		Min float64 `bson:"min"`
-		Max float64 `bson:"max"`
-	}{}
-	cursor.Decode(&data)
-	return []float64{data.Min, data.Max}, err
+	data := &MaxMinItem{}
+	cursor.Decode(data)
+	return data, err
 }
 
 func castArrayString(input interface{}) (out bson.A) {
@@ -394,46 +318,81 @@ func castArrayFloat(input interface{}) (out []float64) {
 	return out
 }
 
-func NewFindFilterSliceFromArgs(args *map[string]interface{}) (*map[string]interface{}, error) {
-	resArgs := map[string]interface{}{}
+func NewArticleDistinctFiltersFromArgs(args *map[string]interface{}, omitted ...string) bson.M {
+	conds := bson.A{}
+	for argName, argValue := range *args {
+		switch argName {
+		case "sizes":
+			conds = append(conds, bson.M{"$in": bson.A{"$$this.stock.size", argValue}})
+		case "categories":
+			conds = append(conds, bson.M{"$in": bson.A{"$$this.category", argValue}})
+		case "priceRange":
+			priceRange := castArrayFloat(argValue)
+			if len(priceRange) > 0 {
+				conds = append(conds, bson.M{"$gt": bson.A{"$$this.price", priceRange[0]}})
+			}
+			if len(priceRange) > 1 {
+				conds = append(conds, bson.M{"$lt": bson.A{"$$this.price", priceRange[1]}})
+			}
+		}
+
+	}
+	
+	if len(conds) == 0 {
+		return nil
+	}
+
+	return bson.M{
+		"$and": conds,
+	}
+}
+
+func NewArticleFiltersFromArgs(args *map[string]interface{}) bson.M {
+	conds := bson.M{}
 	if args != nil {
-		for key, value := range *args {
+		for argName, argValue := range *args {
 			switch {
-			case key == "categories":
-				key = "category"
-				bsonArr := castArrayString(value)
+			case argName == "categories":
+				argName = "category"
+				bsonArr := castArrayString(argValue)
 				if len(bsonArr) == 0 {
 					continue
 				}
-				value = bson.M{
-					"$in": value,
+				argValue = bson.M{
+					"$in": argValue,
 				}
-			case key == "priceRange":
-				key = "price"
-				price := castArrayFloat(value)
-				if len(price) < 2 {
-					continue
+			case argName == "priceRange":
+				argName = "price"
+				bsonValue := bson.M{}
+				priceRange := castArrayFloat(argValue)
+				if len(priceRange) > 0 {
+					bsonValue["$gte"] = priceRange[0]
 				}
-				value = bson.M{
-					"$gte": price[0],
-					"$lte": price[1],
+				if len(priceRange) > 1 {
+					bsonValue["$lte"] = priceRange[1]
 				}
-			case key == "sizes":
-				key = "stock.size"
-				bsonArr := castArrayString(value)
+				argValue = bsonValue
+			case argName == "sizes":
+				argName = "stock.size"
+				bsonArr := castArrayString(argValue)
 				if len(bsonArr) == 0 {
 					continue
 				}
-				value = bson.M{
-					"$in": value,
+				argValue = bson.M{
+					"$in": argValue,
 				}
-			case key == "after" || key == "before" || key == "first" || key == "last" || key == "id":
+			case argName == "after" || argName == "before" || argName == "first" || argName == "last" || argName == "id":
 			default:
 				continue
 			}
-			resArgs[key] = value
+			conds[argName] = argValue
 
 		}
 	}
-	return &resArgs, nil
+
+	if len(conds) == 0 {
+		return nil
+	}
+	
+	return conds
 }
