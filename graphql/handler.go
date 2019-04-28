@@ -9,6 +9,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"fmt"
 
 	"github.com/functionalfoundry/graphqlws"
 	"github.com/graphql-go/graphql"
@@ -37,6 +38,7 @@ type ResultCallbackFn func(ctx context.Context, params *graphql.Params, result *
 type HandlerConfig struct {
 	SubscriptionManager graphqlws.SubscriptionManager
 	Authenticate        AuthenticateFunc
+	Secret 				string
 	Schema              *graphql.Schema
 	Context             context.Context
 }
@@ -248,6 +250,10 @@ func NewRequestOptions(r *http.Request) *RequestOptions {
 // This handler takes a SubscriptionManager and adds/removes subscriptions
 // as they are started/stopped by the client.
 func NewHandlerFunc(config HandlerConfig) func(http.ResponseWriter, *http.Request) {
+	if config.Secret == "" {
+		panic(fmt.Errorf("auth: secret must be defined"))
+	}
+
 	subscriptionManager := graphqlws.NewSubscriptionManager(config.Schema)
 	// Create a WebSocket/HTTP handler
 	graphqlwsHandler := pubsub.NewHandlerFunc(graphqlws.HandlerConfig{

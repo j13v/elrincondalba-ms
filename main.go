@@ -73,6 +73,10 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+
+	if os.Getenv("API_SECRET") == "" {
+		panic("API_SECRET enviroment var must be defined but empty value was detected")
+	}
 	// Primary data initialization
 	if os.Getenv("INIT_DATABASE") != "" {
 		mongodb.InitData(db)
@@ -101,6 +105,7 @@ func main() {
 	}))
 
 	rtr.HandleFunc("/graphql", graphql.NewHandlerFunc(graphql.HandlerConfig{
+		Secret: os.Getenv("API_SECRET"),
 		Schema:  &schema.Schema,
 		Context: ctx,
 	}))
