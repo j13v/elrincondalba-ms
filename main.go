@@ -77,6 +77,12 @@ func main() {
 	if os.Getenv("API_SECRET") == "" {
 		panic("API_SECRET enviroment var must be defined but empty value was detected")
 	}
+	if os.Getenv("API_ADMIN_EMAIL") == "" {
+		panic("API_ADMIN_EMAIL enviroment var must be defined but empty value was detected")
+	}
+	if os.Getenv("API_ADMIN_PASSWORD") == "" {
+		panic("API_ADMIN_PASSWORD enviroment var must be defined but empty value was detected")
+	}
 	// Primary data initialization
 	if os.Getenv("INIT_DATABASE") != "" {
 		mongodb.InitData(db)
