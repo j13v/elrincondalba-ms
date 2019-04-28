@@ -284,7 +284,7 @@ func NewHandlerFunc(config HandlerConfig) func(http.ResponseWriter, *http.Reques
 		}
 		// Join contexts
 		ctx := context.WithValue(config.Context, "token", token)
-		ctx = context.WithValue(ctx, "secret", "secret")
+		ctx = context.WithValue(ctx, "secret", config.Secret)
 		// execute graphql query
 		params := graphql.Params{
 			Schema:         *config.Schema,
