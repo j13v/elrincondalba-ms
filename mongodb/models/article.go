@@ -5,7 +5,7 @@ import (
 	"io"
 	"log"
 	"time"
-	
+
 	defs "github.com/j13v/elrincondalba-ms/definitions"
 	oprs "github.com/j13v/elrincondalba-ms/mongodb/operators"
 	"github.com/mongodb/mongo-go-driver/bson"
@@ -145,6 +145,53 @@ func (model *ModelArticle) FindStockById(stockId primitive.ObjectID) (interface{
 	return stockArticle, err
 }
 
+func (model *ModelArticle) FindStockBySize(stockSize string) (*defs.StockArticle, error) {
+	pipeline := bson.A{
+		bson.M{
+			"$unwind": bson.M{
+				"path": "$stock",
+			},
+		},
+		bson.M{
+			"$replaceRoot": bson.M{
+				"newRoot": bson.M{"$mergeObjects": bson.A{
+					"$stock",
+					bson.M{
+						"article": "$$ROOT",
+					},
+				}},
+			},
+		},
+		bson.M{
+			"$match": bson.M{
+				"size": stockSize,
+			},
+		},
+		bson.M{
+			"$project": bson.M{
+				"article.stock": false,
+			},
+		},
+	}
+
+	ctx := context.Background()
+	cursor, err := model.collection.Aggregate(ctx, pipeline)
+
+	if err != nil {
+
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+	stockArticle := defs.StockArticle{}
+	cursor.Next(ctx)
+	if err = cursor.Decode(&stockArticle); err != nil {
+		log.Fatal(err)
+		return nil, err
+	}
+
+	return &stockArticle, err
+}
+
 func (model *ModelArticle) FindSlice(args *map[string]interface{}) (
 	result []defs.Article,
 	meta oprs.SliceMetadata,
@@ -277,20 +324,20 @@ func (model *ModelArticle) GetPriceRange(args *map[string]interface{}) (*MaxMinI
 			},
 		},
 	},
-	assertPipeline(filterArgs != nil, bson.A{
-		bson.M{
-			"$match": filterArgs,
-		},
-	}),
-	bson.A{
-		bson.M{
-			"$group": bson.M{
-				"_id": nil,
-				"max": bson.M{"$max": "$price"},
-				"min": bson.M{"$min": "$price"},
+		assertPipeline(filterArgs != nil, bson.A{
+			bson.M{
+				"$match": filterArgs,
 			},
-		},
-	})
+		}),
+		bson.A{
+			bson.M{
+				"$group": bson.M{
+					"_id": nil,
+					"max": bson.M{"$max": "$price"},
+					"min": bson.M{"$min": "$price"},
+				},
+			},
+		})
 
 	ctx := context.Background()
 	cursor, err := model.collection.Aggregate(ctx, pipeline)
@@ -349,7 +396,7 @@ func NewArticleDistinctFiltersFromArgs(args *map[string]interface{}, omitted ...
 		}
 
 	}
-	
+
 	if len(conds) == 0 {
 		return nil
 	}
@@ -404,10 +451,10 @@ func NewArticleFiltersFromArgs(args *map[string]interface{}) interface{} {
 
 		}
 	}
-	
+
 	if len(conds) == 0 {
 		return nil
 	}
-	
+
 	return &conds
 }

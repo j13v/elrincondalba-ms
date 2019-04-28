@@ -1,6 +1,8 @@
 package mutations
 
 import (
+	"fmt"
+
 	"github.com/graphql-go/graphql"
 	decs "github.com/j13v/elrincondalba-ms/graphql/decorators"
 	"github.com/j13v/elrincondalba-ms/graphql/types"
@@ -16,8 +18,8 @@ var MutationOrder = graphql.Fields{
 		Type:        types.TypeOrder,
 		Description: "Create new order",
 		Args: graphql.FieldConfigArgument{
-			"stock": &graphql.ArgumentConfig{
-				Type: graphql.NewNonNull(types.ObjectID),
+			"stockSize": &graphql.ArgumentConfig{
+				Type: graphql.NewNonNull(graphql.String),
 			},
 			"name": &graphql.ArgumentConfig{
 				Type: graphql.NewNonNull(graphql.String),
@@ -49,12 +51,13 @@ var MutationOrder = graphql.Fields{
 			if err != nil {
 				return nil, err
 			}
-			oid, err := primitive.ObjectIDFromHex(params.Args["stock"].(string))
+			stockSize := params.Args["stockSize"].(string)
+			stockArticle, err := repo.Article.FindStockBySize(stockSize)
 			if err != nil {
-				return nil, err
+				return nil, fmt.Errorf("No stock found by size %s", stockSize)
 			}
 			order, err := repo.Order.Create(
-				oid,
+				stockArticle.ID,
 				user.ID,
 				params.Args["notes"].(string),
 			)
