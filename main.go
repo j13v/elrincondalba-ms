@@ -30,9 +30,9 @@ func corsHandler(h http.Handler, origin string) http.HandlerFunc {
 		w.Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
 		if r.Method == "OPTIONS" {
 			return
-		} else {
-			h.ServeHTTP(w, r)
 		}
+
+		h.ServeHTTP(w, r)
 	}
 }
 
@@ -111,7 +111,7 @@ func main() {
 	}))
 
 	rtr.HandleFunc("/graphql", graphql.NewHandlerFunc(graphql.HandlerConfig{
-		Secret: os.Getenv("API_SECRET"),
+		Secret:  os.Getenv("API_SECRET"),
 		Schema:  &schema.Schema,
 		Context: ctx,
 	}))
@@ -277,113 +277,3 @@ var page = []byte(`
     </body>
 </html>
 `)
-
-// ctx := context.Background()
-// ctx = context.WithValue(ctx, "model", models))
-// context.WithValue(ctx, "user", users))
-
-// // Create a subscription manager
-// subscriptionManager := graphqlws.NewSubscriptionManager(&schema.Schema)
-// // Create a WebSocket/HTTP handler
-// graphqlwsHandler := pubsub.NewHandlerFunc(graphqlws.HandlerConfig{
-// 	// Wire up the GraphqL WebSocket handler with the subscription manager
-// 	SubscriptionManager: subscriptionManager,
-//
-// 	// Optional: Add a hook to resolve auth tokens into users that are
-// 	// then stored on the GraphQL WS connections
-// 	Authenticate: func(authToken string) (interface{}, error) {
-// 		// This is just a dumb example
-// 		return "Joe", nil
-// 	},
-// })
-//
-
-//
-// subscriptions := subscriptionManager.Subscriptions()
-
-// go func() {
-// 	for {
-// 		time.Sleep(2 * time.Second)
-// 		result := db.Collection("article").FindOne(context.Background(), bson.M{
-// 			"rating": bson.M{"$gte": " Math.random()"},
-// 		})
-// 		article := definitions.Article{}
-// 		result.Decode(&article)
-// 		article.Rating = (article.Rating + 1) % 5
-// 		article.Price = rand.Float64() * 100
-// 		repo.Article.Sync(&article)
-//
-// 		for conn, subs := range subscriptions {
-// 			conn.ID()
-// 			conn.User()
-// 			for _, subscription := range subs {
-// 				// Prepare an execution context for running the query
-// 				ctx := context.Background()
-// 				ctx = decs.ContextPubSubApply(article)(ctx)
-// 				// Re-execute the subscription query
-// 				params := graphql.Params{
-// 					Schema:         schema.Schema, // The GraphQL schema
-// 					RequestString:  subscription.Query,
-// 					VariableValues: subscription.Variables,
-// 					OperationName:  subscription.OperationName,
-// 					Context:        ctx,
-// 				}
-// 				result := graphql.Do(params)
-// 				// Send query results back to the subscriber at any point
-// 				data := graphqlws.DataMessagePayload{
-// 					// Data can be anything (interface{})
-// 					Data: result.Data,
-// 					// Errors is optional ([]error)
-// 					Errors: graphqlws.ErrorsFromGraphQLErrors(result.Errors),
-// 				}
-// 				subscription.SendData(&data)
-// 			}
-// 		}
-// 	}
-// }()
-//
-// http.HandleFunc("/graphql", func(w http.ResponseWriter, r *http.Request) {
-//
-// 	if r.Header["Connection"][0] == "Upgrade" {
-// 		graphqlwsHandler(w, r)
-// 	} else {
-// 		ghandler.New(executor)
-// 		setupResponse(&w, r)
-// 		if (*r).Method == "OPTIONS" {
-// 			return
-// 		}
-// 		decoder := json.NewDecoder(r.Body)
-// 		var t BodyQueryMessage
-// 		err := decoder.Decode(&t)
-// 		if err != nil {
-// 			panic(err)
-// 		}
-//
-// 		ctx := context.Background()
-// 		ctx = decs.ContextRepoApply(repo)(ctx)
-// 		// ctx = decs.DecoratorContextUserApply(u)(ctx)
-//
-// 		result := executeQuery(
-// 			schema.Schema,
-// 			t.Query,
-// 			t.Variables,
-// 			ctx)
-// 		json.NewEncoder(w).Encode(result)
-// 	}
-// })
-
-// http.Handle("/images/{image:[a-z0-9]+}", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-// 	fmt.Printf("%v\n", r.URL)
-// 	params := mux.Vars(r)
-// 	name := params["name"]
-// 	w.Write([]byte("Hello " + name))
-// }))
-//
-// http.HandleFunc("/graphql", graphql.NewHandlerFunc(graphql.HandlerConfig{
-// 	Schema:  &schema.Schema,
-// 	Context: ctx,
-// }))
-//
-// http.Handle("/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-// 	w.Write(page)
-// }))
