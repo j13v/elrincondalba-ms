@@ -5,6 +5,7 @@ import (
 	"io"
 	"log"
 	"time"
+	"fmt"
 
 	defs "github.com/j13v/elrincondalba-ms/definitions"
 	oprs "github.com/j13v/elrincondalba-ms/mongodb/operators"
@@ -98,7 +99,7 @@ func (model *ModelArticle) FindById(id primitive.ObjectID) (interface{}, error) 
 	return article, err
 }
 
-func (model *ModelArticle) FindStockById(stockId primitive.ObjectID) (interface{}, error) {
+func (model *ModelArticle) FindStockById(stockId primitive.ObjectID) (*defs.StockArticle, error) {
 	pipeline := bson.A{
 		bson.M{
 			"$unwind": bson.M{
@@ -131,7 +132,6 @@ func (model *ModelArticle) FindStockById(stockId primitive.ObjectID) (interface{
 	cursor, err := model.collection.Aggregate(ctx, pipeline)
 
 	if err != nil {
-
 		return nil, err
 	}
 	defer cursor.Close(ctx)
@@ -142,7 +142,7 @@ func (model *ModelArticle) FindStockById(stockId primitive.ObjectID) (interface{
 		return nil, err
 	}
 
-	return stockArticle, err
+	return &stockArticle, err
 }
 
 func (model *ModelArticle) FindStockBySize(stockSize string) (*defs.StockArticle, error) {
@@ -164,7 +164,7 @@ func (model *ModelArticle) FindStockBySize(stockSize string) (*defs.StockArticle
 		},
 		bson.M{
 			"$match": bson.M{
-				"size": stockSize,
+				"size": "M",
 			},
 		},
 		bson.M{
@@ -174,22 +174,22 @@ func (model *ModelArticle) FindStockBySize(stockSize string) (*defs.StockArticle
 		},
 	}
 
-	ctx := context.Background()
-	cursor, err := model.collection.Aggregate(ctx, pipeline)
 
-	if err != nil {
+	// ctx := context.Background()
+	// cursor, err := model.collection.Aggregate(ctx, pipeline)
 
-		return nil, err
-	}
-	defer cursor.Close(ctx)
+	// if err != nil {
+		// return nil, err
+	// }
+	// defer cursor.Close(ctx)
 	stockArticle := defs.StockArticle{}
-	cursor.Next(ctx)
-	if err = cursor.Decode(&stockArticle); err != nil {
-		log.Fatal(err)
-		return nil, err
-	}
+	// cursor.Next(ctx)
 
-	return &stockArticle, err
+	// if err = cursor.Decode(&stockArticle); err != nil {
+	// 	log.Fatal(err)
+	// 	return nil, err
+	// }
+	return &stockArticle, nil
 }
 
 func (model *ModelArticle) FindSlice(args *map[string]interface{}) (
@@ -199,7 +199,21 @@ func (model *ModelArticle) FindSlice(args *map[string]interface{}) (
 ) {
 	var bsonData []bson.Raw
 	ctx := context.Background()
-	bsonData, meta, err = oprs.AggregateSlice(model.collection, ctx, bson.A{})
+	filterArgs := NewArticleFiltersFromArgs(args)
+	fmt.Printf("%v", filterArgs)
+	bsonData, meta, err = oprs.AggregateSlice(model.collection, ctx, combinePipelines(bson.A{
+		bson.M{
+			"$unwind": bson.M{
+				"path": "$stock",
+				"preserveNullAndEmptyArrays": true,
+			},
+		},
+	}, assertPipeline(filterArgs != nil, bson.A{
+		bson.M{
+			"$match": filterArgs,
+		},
+	})))
+
 	for _, v := range bsonData {
 		article := defs.Article{}
 		bson.Unmarshal(v, &article)
