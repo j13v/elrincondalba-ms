@@ -30,7 +30,6 @@ var MutationAuth = graphql.Fields{
 			mac := hmac.New(sha256.New, secret)
 			mac.Write([]byte(fmt.Sprintf("%s:%s", email, password)))
 			phash := base64.StdEncoding.EncodeToString(mac.Sum(nil))
-			fmt.Printf("%v %v\n", string(phash), argSignarute)
 			// Create a new token object, specifying signing method and the claims
 			// you would like it to contain.
 			if argSignarute == string(phash) {
@@ -41,7 +40,6 @@ var MutationAuth = graphql.Fields{
 				})
 				// Sign and get the complete encoded token as a string using the secret
 				tokenString, err := token.SignedString(secret)
-				fmt.Print(tokenString);
 				return tokenString, err
 			}
 
