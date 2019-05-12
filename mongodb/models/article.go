@@ -146,33 +146,33 @@ func (model *ModelArticle) FindStockById(stockId primitive.ObjectID) (*defs.Stoc
 }
 
 func (model *ModelArticle) FindStockBySize(stockSize string) (*defs.StockArticle, error) {
-	pipeline := bson.A{
-		bson.M{
-			"$unwind": bson.M{
-				"path": "$stock",
-			},
-		},
-		bson.M{
-			"$replaceRoot": bson.M{
-				"newRoot": bson.M{"$mergeObjects": bson.A{
-					"$stock",
-					bson.M{
-						"article": "$$ROOT",
-					},
-				}},
-			},
-		},
-		bson.M{
-			"$match": bson.M{
-				"size": "M",
-			},
-		},
-		bson.M{
-			"$project": bson.M{
-				"article.stock": false,
-			},
-		},
-	}
+	// pipeline := bson.A{
+	// 	bson.M{
+	// 		"$unwind": bson.M{
+	// 			"path": "$stock",
+	// 		},
+	// 	},
+	// 	bson.M{
+	// 		"$replaceRoot": bson.M{
+	// 			"newRoot": bson.M{"$mergeObjects": bson.A{
+	// 				"$stock",
+	// 				bson.M{
+	// 					"article": "$$ROOT",
+	// 				},
+	// 			}},
+	// 		},
+	// 	},
+	// 	bson.M{
+	// 		"$match": bson.M{
+	// 			"size": "M",
+	// 		},
+	// 	},
+	// 	bson.M{
+	// 		"$project": bson.M{
+	// 			"article.stock": false,
+	// 		},
+	// 	},
+	// }
 
 
 	// ctx := context.Background()
@@ -201,18 +201,42 @@ func (model *ModelArticle) FindSlice(args *map[string]interface{}) (
 	ctx := context.Background()
 	filterArgs := NewArticleFiltersFromArgs(args)
 	fmt.Printf("%v", filterArgs)
-	bsonData, meta, err = oprs.AggregateSlice(model.collection, ctx, combinePipelines(bson.A{
+	bsonData, meta, err = oprs.AggregateSlice(model.collection, ctx, combinePipelines(
+	bson.A{
 		bson.M{
 			"$unwind": bson.M{
 				"path": "$stock",
 				"preserveNullAndEmptyArrays": true,
 			},
 		},
-	}, assertPipeline(filterArgs != nil, bson.A{
+	}, 
+	assertPipeline(filterArgs != nil, bson.A{
 		bson.M{
 			"$match": filterArgs,
 		},
-	})))
+	}), 
+	bson.A{
+		bson.M{
+			"$group": bson.M{
+				"_id": "$_id",
+				"article": bson.M{"$first":"$$ROOT"},
+				"stock": bson.M{ "$push": "$stock"},
+			},
+	}}, 
+	bson.A{
+		bson.M{
+			"$replaceRoot": bson.M{
+				"newRoot": bson.M{
+					"$mergeObjects": bson.A{
+						"$article",
+						bson.M{
+							"stock": "$stock",
+						},
+					},
+				},
+			},
+	}}))
+
 
 	for _, v := range bsonData {
 		article := defs.Article{}
