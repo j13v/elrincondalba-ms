@@ -41,6 +41,10 @@ var MutationOrder = graphql.Fields{
 			},
 		},
 		Resolve: decs.ContextRepoConsumer(func(params graphql.ResolveParams, repo mongodb.Repo) (interface{}, error) {
+			notes := ""
+			if params.Args["notes"] != nil {
+				notes = params.Args["notes"].(string)
+			}
 			user, err := repo.User.Create(
 				params.Args["name"].(string),
 				params.Args["surname"].(string),
@@ -59,7 +63,7 @@ var MutationOrder = graphql.Fields{
 			order, err := repo.Order.Create(
 				stockArticle.ID,
 				user.ID,
-				params.Args["notes"].(string),
+				notes,
 			)
 			return order, err
 		}),
