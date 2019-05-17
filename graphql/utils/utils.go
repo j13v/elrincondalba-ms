@@ -211,10 +211,10 @@ func GetValueByJSONTag(value interface{}, tagName string) (interface{}, bool) {
 }
 
 type ConnectionConfig struct {
-	Name             string          `json:"name"`
-	NodeType         *graphql.Object `json:"nodeType"`
-	EdgeFields       graphql.Fields  `json:"edgeFields"`
-	ConnectionFields graphql.Fields  `json:"connectionFields"`
+	Name             string         `json:"name"`
+	NodeType         graphql.Output `json:"nodeType"`
+	EdgeFields       graphql.Fields `json:"edgeFields"`
+	ConnectionFields graphql.Fields `json:"connectionFields"`
 }
 
 var pageInfoType = graphql.NewObject(graphql.ObjectConfig{

@@ -46,6 +46,22 @@ var FieldListArticles = &graphql.Field{
 		"sizes": &graphql.ArgumentConfig{
 			Type: graphql.NewList(graphql.String),
 		},
+		"sorting": &graphql.ArgumentConfig{
+			Type: graphql.NewEnum(graphql.EnumConfig{
+				Name: "ArticleSortingEnum",
+				Values: graphql.EnumValueConfigMap{
+					"POPULAR": &graphql.EnumValueConfig{
+						Value: 1,
+					},
+					"PURCHASES": &graphql.EnumValueConfig{
+						Value: 2,
+					},
+					"RECENTS": &graphql.EnumValueConfig{
+						Value: 3,
+					},
+				},
+			}),
+		},
 	}),
 	Resolve: decs.ContextRepoConsumer(func(params graphql.ResolveParams, model mongodb.Repo) (interface{}, error) {
 		connArgs := relay.NewConnectionArguments(params.Args)

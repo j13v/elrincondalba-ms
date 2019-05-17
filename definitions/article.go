@@ -23,6 +23,7 @@ type Article struct {
 	CreatedAt   int32                `bson:"createdAt,omitempty" json:"createdAt"`
 	UpdatedAt   int32                `bson:"updatedAt,omitempty" json:"updatedAt"`
 	Disabled    bool                 `bson:"disabled"`
+	Available   bool                 `bson:"available"`
 }
 
 /*

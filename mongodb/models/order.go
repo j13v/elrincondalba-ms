@@ -44,6 +44,7 @@ func (model *ModelOrder) Create(stock primitive.ObjectID, user primitive.ObjectI
 	if _, err := model.user.FindById(user); err != nil {
 		return nil, fmt.Errorf("No user found by id %s", user)
 	}
+	
 	order, err := defs.NewOrder(stock, user, notes)
 	if err != nil {
 		return nil, err

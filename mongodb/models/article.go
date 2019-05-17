@@ -5,7 +5,6 @@ import (
 	"io"
 	"log"
 	"time"
-	"fmt"
 
 	defs "github.com/j13v/elrincondalba-ms/definitions"
 	oprs "github.com/j13v/elrincondalba-ms/mongodb/operators"
@@ -192,6 +191,22 @@ func (model *ModelArticle) FindStockBySize(stockSize string) (*defs.StockArticle
 	return &stockArticle, nil
 }
 
+/* 
+FindSlice 
+## Filtering
+- priceRange: [min, max]
+- categories: [category, ...]
+- sizes: [size, ...]
+## Sorting
+- By popularity
+- By recents
+- By purchased
+## Flags:
+- Show disabled articles
+- Show articles without stock
+- Filter Stock items Already purchased
+*/
+
 func (model *ModelArticle) FindSlice(args *map[string]interface{}) (
 	result []defs.Article,
 	meta oprs.SliceMetadata,
@@ -199,44 +214,12 @@ func (model *ModelArticle) FindSlice(args *map[string]interface{}) (
 ) {
 	var bsonData []bson.Raw
 	ctx := context.Background()
-	filterArgs := NewArticleFiltersFromArgs(args)
-	fmt.Printf("%v", filterArgs)
-	bsonData, meta, err = oprs.AggregateSlice(model.collection, ctx, combinePipelines(
-	bson.A{
-		bson.M{
-			"$unwind": bson.M{
-				"path": "$stock",
-				"preserveNullAndEmptyArrays": true,
-			},
-		},
-	}, 
-	assertPipeline(filterArgs != nil, bson.A{
-		bson.M{
-			"$match": filterArgs,
-		},
-	}), 
-	bson.A{
-		bson.M{
-			"$group": bson.M{
-				"_id": "$_id",
-				"article": bson.M{"$first":"$$ROOT"},
-				"stock": bson.M{ "$push": "$stock"},
-			},
-	}}, 
-	bson.A{
-		bson.M{
-			"$replaceRoot": bson.M{
-				"newRoot": bson.M{
-					"$mergeObjects": bson.A{
-						"$article",
-						bson.M{
-							"stock": "$stock",
-						},
-					},
-				},
-			},
-	}}))
-
+	sorting := 0
+	if (*args)["sorting"] != nil {
+		sorting = (*args)["sorting"].(int)
+	}
+	pipeline := createArticleStockPipeline(args, sorting)
+	bsonData, meta, err = oprs.AggregateSlice(model.collection, ctx, pipeline)
 
 	for _, v := range bsonData {
 		article := defs.Article{}
@@ -354,26 +337,21 @@ type MaxMinItem = struct {
 
 func (model *ModelArticle) GetPriceRange(args *map[string]interface{}) (*MaxMinItem, error) {
 	filterArgs := NewArticleFiltersFromArgs(args)
-	pipeline := combinePipelines(bson.A{
+	pipeline := composePipeline(
 		bson.M{
 			"$unwind": bson.M{
 				"path": "$stock",
 				"preserveNullAndEmptyArrays": true,
 			},
 		},
-	},
-		assertPipeline(filterArgs != nil, bson.A{
-			bson.M{
-				"$match": filterArgs,
-			},
-		}),
-		bson.A{
-			bson.M{
-				"$group": bson.M{
-					"_id": nil,
-					"max": bson.M{"$max": "$price"},
-					"min": bson.M{"$min": "$price"},
-				},
+		bson.M{
+			"$match": filterArgs,
+		},
+		bson.M{
+			"$group": bson.M{
+				"_id": nil,
+				"max": bson.M{"$max": "$price"},
+				"min": bson.M{"$min": "$price"},
 			},
 		})
 
@@ -444,22 +422,28 @@ func NewArticleDistinctFiltersFromArgs(args *map[string]interface{}, omitted ...
 	}
 }
 
-func NewArticleFiltersFromArgs(args *map[string]interface{}) interface{} {
-	conds := bson.M{}
+func NewArticleFiltersFromArgs(args *map[string]interface{}) bson.M {
+	criterias := bson.M{}
 	if args != nil {
 		for argName, argValue := range *args {
 			switch {
-			case argName == "categories":
-				argName = "category"
+			case argName == "sizes":
 				bsonArr := castArrayString(argValue)
 				if len(bsonArr) == 0 {
 					continue
 				}
-				argValue = bson.M{
+				criterias["stock.size"] = bson.M{
+					"$in": argValue,
+				}
+			case argName == "categories":
+				bsonArr := castArrayString(argValue)
+				if len(bsonArr) == 0 {
+					continue
+				}
+				criterias["category"] = bson.M{
 					"$in": argValue,
 				}
 			case argName == "priceRange":
-				argName = "price"
 				bsonValue := bson.M{}
 				priceRange := castArrayFloat(argValue)
 				if len(priceRange) == 0 {
@@ -471,28 +455,10 @@ func NewArticleFiltersFromArgs(args *map[string]interface{}) interface{} {
 				if len(priceRange) > 1 {
 					bsonValue["$lte"] = priceRange[1]
 				}
-				argValue = bsonValue
-			case argName == "sizes":
-				argName = "stock.size"
-				bsonArr := castArrayString(argValue)
-				if len(bsonArr) == 0 {
-					continue
-				}
-				argValue = bson.M{
-					"$in": argValue,
-				}
-			case argName == "after" || argName == "before" || argName == "first" || argName == "last" || argName == "id":
-			default:
-				continue
+				criterias["price"] = bsonValue
 			}
-			conds[argName] = argValue
-
 		}
 	}
 
-	if len(conds) == 0 {
-		return nil
-	}
-
-	return &conds
+	return criterias
 }
